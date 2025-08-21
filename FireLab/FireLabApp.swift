@@ -12,7 +12,6 @@ struct FireLabApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(FireInputs())
         }
     }
 }

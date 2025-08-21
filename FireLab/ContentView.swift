@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var inputs = FireInputs()
     var body: some View {
         VStack {
             NavigationStack {
-
+                
                 Logo()
                     .padding([.bottom], 160)
                 NavigationLink(destination: AddDetailsHub()) {
@@ -24,6 +25,7 @@ struct ContentView: View {
                     
                 }
             }
+            .environmentObject(inputs)
             
         }
     }

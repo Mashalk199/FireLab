@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AddDetailsHub: View {
-    @State var yearlyIncome: Double?
+    var yearlyIncome: Double?
     let formatter: NumberFormatter = {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
@@ -17,32 +17,19 @@ struct AddDetailsHub: View {
     @EnvironmentObject var inputs: FireInputs
     var body: some View {
         VStack {
-                HStack {
-                    Text("Yearly Income")
-                        .frame(width:200, alignment: .leading)
+            Logo()
+                .padding([.bottom], 20)
+            InputField(
+                label: "Yearly Income",
+                fieldVar: $inputs.yearlyIncomeText,
+                placeholder: "$")
 
-
-                    TextField("$",
-                              value: $yearlyIncome,
-                              formatter: formatter)
-                    .frame(width: 150, height: 30)
-                    .border(Color.gray)
-                }
-                .frame(width: 300)
-            HStack {
-                Text("Yearly Non-housing Expenses")
-                    .frame(width:200, alignment: .leading)
-
-                TextField("$",
-                          value: $yearlyIncome,
-                          formatter: formatter)
-                .frame(width: 150, height: 30)
-                .border(Color.gray)
-            }
-            .frame(width: 300)
-
-                let income = yearlyIncome ?? 0
-                Text("Your score was \(income).")
+            InputField(
+                label: "Yearly Non-housing Expenses",
+                fieldVar: $inputs.nonHousingText,
+                placeholder: "$")
+            
+                
                 Spacer()
             
             }
@@ -52,4 +39,5 @@ struct AddDetailsHub: View {
 
 #Preview {
     AddDetailsHub(yearlyIncome: nil)
+        .environmentObject(FireInputs())
 }

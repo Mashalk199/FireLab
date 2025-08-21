@@ -31,20 +31,30 @@ struct BigButton : View {
     }
 }
 
-//struct InputField : View {
-//    var body: some View {
-//        var fieldText: String = ""
-//        var fieldPlaceholder: String = ""
-//        HStack {
-//            Text(fieldText)
-//                .frame(width:200, alignment: .leading)
-//            TextField(fieldPlaceholder,
-//                      value: $yearlyIncome,
-//                      formatter: formatter)
-//            .frame(width: 150, height: 30)
-//            .border(Color.gray)
-//        }
-//        .frame(width: 300)
-//    }
-//}
+struct InputField : View {
+    var label: String
+    @Binding var fieldVar: String
+    var placeholder: String
+    
+    let formatter: NumberFormatter = {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            return formatter
+        }()
+    
+    var body: some View {
+        HStack {
+            Text(label)
+                .frame(width:200, alignment: .leading)
+
+
+            TextField(placeholder,
+                      text: $fieldVar)
+            .keyboardType(.decimalPad)
+            .frame(width: 150, height: 30)
+            .border(Color.gray)
+        }
+        .frame(width: 300)
+    }
+}
 
