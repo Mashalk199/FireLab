@@ -7,7 +7,7 @@
 
 import Foundation
 import SwiftUI
-
+// This file is where all the common components in the app will be retrieved from
 struct Logo : View {
     var body: some View {
         Text("FireLab")
@@ -54,30 +54,40 @@ struct InputField : View {
             .border(Color.gray)
         }
         .frame(width: 300)
+        .padding(.vertical, 5)
     }
 }
 
 // This medium button is used on screen 2, the AddDetailsHub
-struct MediumButton : View {
+struct MediumButton<Destination: View>: View {
     var text: String
+    @ViewBuilder var destination: () -> Destination
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 40)
-                .foregroundColor(Color.orange)
-            
-            Text(text)
-                .font(.system(size: 20))
-                .foregroundColor(.white)
-            
-            HStack {
-                Spacer()
-                Image(systemName: "arrow.right.circle")
+        NavigationLink {
+            // do calculation
+            destination()
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 40)
+                    .foregroundColor(Color.orange)
+                
+                Text(text)
+                    .font(.system(size: 20))
                     .foregroundColor(.white)
-                    .padding(.trailing, 7)
-                    .font(.system(size: 40))
+                
+                HStack {
+                    Spacer()
+                    Image(systemName: "arrow.right.circle")
+                        .foregroundColor(.white)
+                        .padding(.trailing, 7)
+                        .font(.system(size: 40))
+                }
             }
-        }
             .frame(width: 350, height: 61)
+        }
+        .padding(.vertical, 15)
+        .buttonStyle(.plain)
+
     }
 }
 

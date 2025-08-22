@@ -10,35 +10,56 @@ import SwiftUI
 struct AddDetailsHub: View {
     @EnvironmentObject var inputs: FireInputs
     var body: some View {
-        VStack {
-            Logo()
-                .padding([.bottom], 20)
-            InputField(
-                label: "Yearly Income",
-                fieldVar: $inputs.yearlyIncomeText,
-                placeholder: "$")
-
-            InputField(
-                label: "Yearly Non-housing Expenses",
-                fieldVar: $inputs.nonHousingText,
-                placeholder: "$")
             
-            InputField(
-                label: "Monthly FI Contribution",
-                fieldVar: $inputs.FIContributionText,
-                placeholder: "$")
-            
-            MediumButton(text: "Housing")
+            VStack {
+                
+                Logo()
+                    .padding([.bottom], 20)
 
+                InputField(
+                    label: "Yearly Income",
+                    fieldVar: $inputs.yearlyIncomeText,
+                    placeholder: "$")
+                
+                InputField(
+                    label: "Yearly Non-housing Expenses",
+                    fieldVar: $inputs.nonHousingText,
+                    placeholder: "$")
+                
+                InputField(
+                    label: "Monthly FI Contribution",
+                    fieldVar: $inputs.FIContributionText,
+                    placeholder: "$")
+                
+                Text("Add details:")
+                    .padding(.top, 20)
+                
+                MediumButton(text: "Housing") {
+                    HousingDetails()
+                }
+                
+                MediumButton(text: "Other Loans") {
+                    OtherLoanDetails()
+                }
+                
+                MediumButton(text: "Investment Portfolio") {
+                    PortfolioDetails()
+                }
+                
+                
+                
                 
                 Spacer()
-            
+                
             }
+        
         
     }
 }
 
 #Preview {
-    AddDetailsHub()
-        .environmentObject(FireInputs())
+    NavigationStack {
+        AddDetailsHub()
+            .environmentObject(FireInputs())
+    }
 }

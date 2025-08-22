@@ -10,9 +10,8 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var inputs = FireInputs()
     var body: some View {
-        VStack {
-            NavigationStack {
-                
+        NavigationStack {
+            VStack {
                 Logo()
                     .padding([.bottom], 160)
                 NavigationLink(destination: AddDetailsHub()) {
@@ -21,16 +20,15 @@ struct ContentView: View {
                 }
                 NavigationLink(destination: AddDetailsHub()) {
                     BigButton(text:"Standard FIRE")
-                    
-                    
                 }
             }
-            .environmentObject(inputs)
-            
         }
+        // Here we attach the environment object of inputs to the root of the entire app, so all screens can write user details to a place that can be accessed for calculations
+        .environmentObject(inputs)
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(FireInputs()) 
 }
