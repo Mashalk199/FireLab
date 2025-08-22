@@ -64,7 +64,6 @@ struct MediumButton<Destination: View>: View {
     @ViewBuilder var destination: () -> Destination
     var body: some View {
         NavigationLink {
-            // do calculation
             destination()
         } label: {
             ZStack {
@@ -88,6 +87,50 @@ struct MediumButton<Destination: View>: View {
         .padding(.vertical, 15)
         .buttonStyle(.plain)
 
+    }
+}
+// Global small navigation/add button
+struct SmallButton<Destination: View>: View {
+    var text: String
+    var icon: String
+    var width: Int
+    var fgColor: Color
+    var bgColor: Color
+    var border: Color
+    @ViewBuilder var destination: () -> Destination
+    var body: some View {
+        
+
+        NavigationLink {
+            destination()
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 40)
+                    .fill(bgColor)
+                HStack {
+                    // We use a spacer here, and a spacer after the Text component so that the text lies in the middle of the space between the icon and the button edge
+                    Spacer()
+                    Text(text)
+                        .font(.system(size: 20))
+                        .foregroundColor(fgColor)
+                        .padding(.leading, 7)
+                    Spacer()
+                    Image(systemName: icon)
+                    
+                        .foregroundColor(fgColor)
+                        .padding(.trailing, 7)
+                        .font(.system(size: 40))
+                }
+            }
+            .frame(width: 133, height: 66)
+            .background(
+                RoundedRectangle(
+                    cornerRadius: 40)
+                    .stroke(border, lineWidth: 3)
+                )
+        }
+        .padding(.vertical, 15)
+        .buttonStyle(.plain)
     }
 }
 

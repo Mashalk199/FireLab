@@ -50,7 +50,18 @@ struct AddDetailsHub: View {
                 
                 
                 Spacer()
-                
+                HStack(spacing: 20) {
+                    Spacer()
+                    SmallButton(text: "Next",
+                                icon: "arrow.right.circle",
+                                width: 133,
+                                fgColor: Color.orange,
+                                bgColor: Color.white,
+                                border: Color.black) {
+                        HousingDetails()
+                    }
+                                .padding(.trailing, 50)
+                }
             }
         
         
