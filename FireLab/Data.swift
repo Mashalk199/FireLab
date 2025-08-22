@@ -9,4 +9,5 @@ import Foundation
 class FireInputs: ObservableObject {
     @Published var yearlyIncomeText: String = ""
     @Published var nonHousingText: String = ""
+    @Published var FIContributionText: String = ""
 }

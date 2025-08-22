@@ -8,12 +8,6 @@
 import SwiftUI
 
 struct AddDetailsHub: View {
-    var yearlyIncome: Double?
-    let formatter: NumberFormatter = {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            return formatter
-        }()
     @EnvironmentObject var inputs: FireInputs
     var body: some View {
         VStack {
@@ -29,6 +23,13 @@ struct AddDetailsHub: View {
                 fieldVar: $inputs.nonHousingText,
                 placeholder: "$")
             
+            InputField(
+                label: "Monthly FI Contribution",
+                fieldVar: $inputs.FIContributionText,
+                placeholder: "$")
+            
+            MediumButton(text: "Housing")
+
                 
                 Spacer()
             
@@ -38,6 +39,6 @@ struct AddDetailsHub: View {
 }
 
 #Preview {
-    AddDetailsHub(yearlyIncome: nil)
+    AddDetailsHub()
         .environmentObject(FireInputs())
 }

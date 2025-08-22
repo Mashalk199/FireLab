@@ -46,15 +46,38 @@ struct InputField : View {
         HStack {
             Text(label)
                 .frame(width:200, alignment: .leading)
-
-
+            
             TextField(placeholder,
                       text: $fieldVar)
             .keyboardType(.decimalPad)
-            .frame(width: 150, height: 30)
+            .frame(width: 150, height: 35)
             .border(Color.gray)
         }
         .frame(width: 300)
+    }
+}
+
+// This medium button is used on screen 2, the AddDetailsHub
+struct MediumButton : View {
+    var text: String
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 40)
+                .foregroundColor(Color.orange)
+            
+            Text(text)
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+            
+            HStack {
+                Spacer()
+                Image(systemName: "arrow.right.circle")
+                    .foregroundColor(.white)
+                    .padding(.trailing, 7)
+                    .font(.system(size: 40))
+            }
+        }
+            .frame(width: 350, height: 61)
     }
 }
 
