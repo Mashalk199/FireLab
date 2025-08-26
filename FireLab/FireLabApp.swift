@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct FireLabApp: App {
+    @StateObject var inputs = FireInputs()
+    @StateObject var portfolio  = PortfolioModel()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(inputs)
+                .environmentObject(portfolio)
         }
     }
 }

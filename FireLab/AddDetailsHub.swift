@@ -1,4 +1,3 @@
-//
 //  AddDetailsHub.swift
 //  FireLab
 //
@@ -9,68 +8,75 @@ import SwiftUI
 
 struct AddDetailsHub: View {
     @EnvironmentObject var inputs: FireInputs
+    @EnvironmentObject var portfolio: PortfolioModel
+    @State private var showInvestmentSheet = false
+    
     var body: some View {
+        VStack {
             
-            VStack {
-                
-                Logo()
-                    .padding([.bottom], 20)
-
-                InputField(
-                    label: "Yearly Income",
-                    fieldVar: $inputs.yearlyIncomeText,
-                    placeholder: "$")
-                
-                InputField(
-                    label: "Yearly Non-housing Expenses",
-                    fieldVar: $inputs.nonHousingText,
-                    placeholder: "$")
-                
-                InputField(
-                    label: "Monthly FI Contribution",
-                    fieldVar: $inputs.FIContributionText,
-                    placeholder: "$")
-                
-                Text("Add details:")
-                    .padding(.top, 20)
-                
-                MediumButton(text: "Housing") {
-                    HousingDetails()
-                }
-                
-                MediumButton(text: "Other Loans") {
-                    OtherLoanDetails()
-                }
-                
-                MediumButton(text: "Investment Portfolio") {
-                    PortfolioDetails()
-                }
-                
-                
-                
-                
-                Spacer()
-                HStack(spacing: 20) {
-                    Spacer()
-                    SmallButton(text: "Next",
-                                icon: "arrow.right.circle",
-                                width: 133,
-                                fgColor: Color.orange,
-                                bgColor: Color.white,
-                                border: Color.black) {
-                        HousingDetails()
-                    }
-                                .padding(.trailing, 50)
-                }
+            Logo()
+                .padding([.bottom], 20)
+            
+            InputField(
+                label: "Yearly Income",
+                fieldVar: $inputs.yearlyIncomeText,
+                placeholder: "$")
+            
+            InputField(
+                label: "Yearly Non-housing Expenses",
+                fieldVar: $inputs.nonHousingText,
+                placeholder: "$")
+            
+            InputField(
+                label: "Monthly FI Contribution",
+                fieldVar: $inputs.FIContributionText,
+                placeholder: "$")
+            
+            Text("Add details:")
+                .padding(.top, 20)
+            
+            MediumButton(text: "Housing") {
+                HousingDetails()
             }
-        
-        
+            
+            MediumButton(text: "Other Loans") {
+                OtherLoanDetails()
+            }
+            
+            MediumButton(text: "Investment Portfolio") {
+                PortfolioDetails()
+            }
+            
+            
+            
+            
+            Spacer()
+            HStack(spacing: 20) {
+                Spacer()
+                SmallButton(text: "Next",
+                            icon: "arrow.right.circle",
+                            width: 133,
+                            fgColor: Color.orange,
+                            bgColor: Color.white,
+                            border: Color.black) {
+                    InvestmentAllocatorView()
+                }
+                            .padding(.trailing, 50)
+            }
+            .sheet(isPresented: $showInvestmentSheet) {
+                AddInvestmentView()
+                    .environmentObject(portfolio)
+            }
+        }
     }
 }
 
 #Preview {
-    NavigationStack {
+    let inputs = FireInputs()
+    let portfolio = PortfolioModel()
+    return NavigationStack {
         AddDetailsHub()
-            .environmentObject(FireInputs())
     }
+    .environmentObject(inputs)
+    .environmentObject(portfolio)
 }

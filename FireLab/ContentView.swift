@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var inputs = FireInputs()
+    @EnvironmentObject var inputs: FireInputs
+    @EnvironmentObject var portfolio: PortfolioModel
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -25,10 +27,12 @@ struct ContentView: View {
         }
         // Here we attach the environment object of inputs to the root of the entire app, so all screens can write user details to a place that can be accessed for calculations
         .environmentObject(inputs)
+        .environmentObject(portfolio)
     }
 }
 
 #Preview {
     ContentView()
-        .environmentObject(FireInputs()) 
+        .environmentObject(FireInputs())
+        .environmentObject(PortfolioModel())
 }
