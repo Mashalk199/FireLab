@@ -7,8 +7,7 @@
 import SwiftUI
 
 struct AddDetailsHub: View {
-    @EnvironmentObject var inputs: FireInputs
-    @EnvironmentObject var portfolio: PortfolioModel
+    @EnvironmentObject var app: AppModel
     @State private var showInvestmentSheet = false
     
     var body: some View {
@@ -19,17 +18,17 @@ struct AddDetailsHub: View {
             
             InputField(
                 label: "Yearly Income",
-                fieldVar: $inputs.yearlyIncomeText,
+                fieldVar: $app.inputs.yearlyIncomeText,
                 placeholder: "$")
             
             InputField(
                 label: "Yearly Non-housing Expenses",
-                fieldVar: $inputs.nonHousingText,
+                fieldVar: $app.inputs.nonHousingText,
                 placeholder: "$")
             
             InputField(
                 label: "Monthly FI Contribution",
-                fieldVar: $inputs.FIContributionText,
+                fieldVar: $app.inputs.FIContributionText,
                 placeholder: "$")
             
             Text("Add details:")
@@ -47,9 +46,6 @@ struct AddDetailsHub: View {
                 PortfolioDetails()
             }
             
-            
-            
-            
             Spacer()
             HStack(spacing: 20) {
                 Spacer()
@@ -59,24 +55,18 @@ struct AddDetailsHub: View {
                             fgColor: Color.orange,
                             bgColor: Color.white,
                             border: Color.black) {
-                    InvestmentAllocatorView()
+                    InvestmentView()
                 }
-                            .padding(.trailing, 50)
+                .padding(.trailing, 50)
             }
             .sheet(isPresented: $showInvestmentSheet) {
                 AddInvestmentView()
-                    .environmentObject(portfolio)
             }
         }
     }
 }
 
 #Preview {
-    let inputs = FireInputs()
-    let portfolio = PortfolioModel()
-    return NavigationStack {
-        AddDetailsHub()
-    }
-    .environmentObject(inputs)
-    .environmentObject(portfolio)
+    NavigationStack { AddDetailsHub() }
+        .environmentObject(AppModel())
 }

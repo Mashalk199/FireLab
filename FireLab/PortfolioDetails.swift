@@ -37,7 +37,7 @@ final class PortfolioModel: ObservableObject {
 }
 
 struct PortfolioDetails: View {
-    @EnvironmentObject var portfolio: PortfolioModel
+    @EnvironmentObject var app: AppModel
     
     var body: some View {
         VStack {
@@ -45,11 +45,11 @@ struct PortfolioDetails: View {
                 .font(.title).bold()
                 .padding(.bottom, 8)
             
-            if portfolio.items.isEmpty {
+            if app.portfolio.items.isEmpty {
                 Text("Calculations for investment coming out soon...")
                     .foregroundStyle(.secondary)
             } else {
-                List(portfolio.items) { it in
+                List(app.portfolio.items) { it in
                     HStack {
                         Text(it.name)
                         Spacer()
@@ -66,11 +66,11 @@ struct PortfolioDetails: View {
 }
 
 #Preview("Portfolio") {
-    let m = PortfolioModel()
-    m.items = [
+    let app = AppModel()
+    app.portfolio.items = [
         InvestmentItem(name: "VDHG", type: .etf, allocationPercent: "60"),
         InvestmentItem(name: "AusGov Bonds", type: .bond, allocationPercent: "40")
     ]
     return NavigationStack { PortfolioDetails() }
-        .environmentObject(m)
+        .environmentObject(app)
 }

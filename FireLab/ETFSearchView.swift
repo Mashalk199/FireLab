@@ -9,13 +9,15 @@ import SwiftUI
 
 struct ETFSearchView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var portfolio: PortfolioModel
+    @EnvironmentObject var app: AppModel
     @State private var query = ""
 
     let all = ["VDHG", "VS&P500", "NZAM Nasdaq 100", "ETF"]
     var filtered: [String] {
         guard !query.isEmpty else { return all }
-        return all.filter { $0.localizedCaseInsensitiveContains(query) }
+        return all.filter {
+            $0.localizedCaseInsensitiveContains(query)
+        }
     }
 
     var body: some View {
@@ -33,13 +35,19 @@ struct ETFSearchView: View {
 
             List(filtered, id: \.self) { name in
                 Button {
-                    portfolio.selectedETF = name
+                    app.portfolio.selectedETF = name
                     dismiss()
-                } label: { Text(name).frame(maxWidth: .infinity, alignment: .leading) }
+                }
+                label: { Text(name).frame(maxWidth: .infinity, alignment: .leading) }
             }
             .listStyle(.plain)
         }
     }
 }
 
-#Preview { NavigationStack { ETFSearchView() }.environmentObject(PortfolioModel()) }
+#Preview {
+    NavigationStack {
+        ETFSearchView()
+    }
+        .environmentObject(AppModel())
+}

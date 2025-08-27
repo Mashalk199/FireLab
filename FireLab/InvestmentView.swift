@@ -7,9 +7,8 @@
 
 import SwiftUI
 
-struct InvestmentAllocatorView: View {
-    @EnvironmentObject var portfolio: PortfolioModel
-    @EnvironmentObject var inputs: FireInputs
+struct InvestmentView: View {
+    @EnvironmentObject var app: AppModel
     
     var body: some View {
         VStack(spacing: 16) {
@@ -31,7 +30,7 @@ struct InvestmentAllocatorView: View {
             
             ScrollView {
                 VStack(spacing: 14) {
-                    ForEach(portfolio.items) { item in
+                    ForEach(app.portfolio.items) { item in
                         HStack(spacing: 12) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 8)
@@ -55,8 +54,8 @@ struct InvestmentAllocatorView: View {
                             }
                             Spacer()
                             Button {
-                                if let idx = portfolio.items.firstIndex(of: item) {
-                                    portfolio.items.remove(at: idx)
+                                if let idx = app.portfolio.items.firstIndex(of: item) {
+                                    app.portfolio.items.remove(at: idx)
                                 }
                             } label: {
                                 Image(systemName: "xmark")
@@ -66,7 +65,7 @@ struct InvestmentAllocatorView: View {
                         .padding(.horizontal)
                     }
                     
-                    if portfolio.items.isEmpty {
+                    if app.portfolio.items.isEmpty {
                         Text("No investments yet").foregroundStyle(.secondary)
                             .padding(.top, 20)
                     }
@@ -89,20 +88,21 @@ struct InvestmentAllocatorView: View {
     }
     
     private func binding(for item: InvestmentItem) -> Binding<InvestmentItem> {
-        guard let idx = portfolio.items.firstIndex(of: item) else {
+        guard let idx = app.portfolio.items.firstIndex(of: item) else {
             return .constant(item)
         }
-        return $portfolio.items[idx]
+        return $app.portfolio.items[idx]
     }
 }
 
 #Preview {
-    let model = PortfolioModel()
-    model.items = [
+    let app = AppModel()
+    app.portfolio.items = [
         InvestmentItem(name: "VDHG", type: .etf),
         InvestmentItem(name: "AusGov Bonds", type: .bond)
     ]
-    return NavigationStack { InvestmentAllocatorView() }
-        .environmentObject(model)
-        .environmentObject(FireInputs())
+    return NavigationStack {
+        InvestmentView()
+    }
+        .environmentObject(app)
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AddInvestmentView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var portfolio: PortfolioModel
+    @EnvironmentObject var app: AppModel
     
     @State private var tab = 0   // 0: ETF, 1: Bond
     @State private var name = ""
@@ -93,10 +93,10 @@ struct AddInvestmentView: View {
                 
                 RoundedFillButton(title: "Add") {
                     let displayName = tab == 0
-                        ? (portfolio.selectedETF ?? (name.isEmpty ? "ETF" : name))
+                    ? (app.portfolio.selectedETF ?? (name.isEmpty ? "ETF" : name))
                         : (name.isEmpty ? "Bond #1" : name)
                     
-                    portfolio.items.append(
+                    app.portfolio.items.append(
                         InvestmentItem(
                             name: displayName,
                             type: tab == 0 ? .etf : .bond,
@@ -177,6 +177,6 @@ struct RoundedFillButton: View {
 #Preview {
     NavigationStack {
         AddInvestmentView()
-            .environmentObject(PortfolioModel())
+            .environmentObject(AppModel())
     }
 }
