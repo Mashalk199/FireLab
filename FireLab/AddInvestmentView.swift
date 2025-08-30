@@ -19,7 +19,7 @@ struct AddInvestmentView: View {
     @State private var name = ""
     @State private var amount = ""
     @State private var expected = ""
-    @State private var autoCalc = true
+    @State private var autoCalc = false
     
     var body: some View {
         VStack(spacing: 16) {
@@ -61,9 +61,10 @@ struct AddInvestmentView: View {
                     .disabled(autoCalc)
                     
                     Toggle(
-                        "Let FireLab calculate expected yearly return",
+                        "Let FireLab calculate expected yearly return (upcoming feature)",
                         isOn: $autoCalc
                     )
+                    .disabled(true)
                     .padding(.horizontal)
                 }
             } else {
@@ -172,10 +173,6 @@ struct RoundedFillButton: View {
                 .background(
                     RoundedRectangle(cornerRadius: 40)
                         .fill(Color.orange)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 40)
-                        .stroke(.black.opacity(0.2))
                 )
         }
     }

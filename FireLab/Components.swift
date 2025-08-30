@@ -98,9 +98,8 @@ struct SmallButton<Destination: View>: View {
     var bgColor: Color
     var border: Color
     @ViewBuilder var destination: () -> Destination
+    
     var body: some View {
-        
-
         NavigationLink {
             destination()
         } label: {
@@ -114,6 +113,7 @@ struct SmallButton<Destination: View>: View {
                         .font(.system(size: 20))
                         .foregroundColor(fgColor)
                         .padding(.leading, 7)
+                        .multilineTextAlignment(.center)
                     Spacer()
                     Image(systemName: icon)
                     
@@ -122,7 +122,7 @@ struct SmallButton<Destination: View>: View {
                         .font(.system(size: 40))
                 }
             }
-            .frame(width: 133, height: 66)
+            .frame(width: CGFloat(width), height: 66)
             .background(
                 RoundedRectangle(
                     cornerRadius: 40)

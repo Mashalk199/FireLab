@@ -19,50 +19,54 @@ struct InvestmentView: View {
                     .font(.footnote)
                     .padding(.horizontal, 10).padding(.vertical, 6)
                     .background(Capsule().stroke(Color.gray.opacity(0.4), lineWidth: 1))
-                Spacer()
             }.padding(.horizontal)
             
             Text("*Proportions must add up to 100%")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal)
             
             ScrollView {
-                VStack(spacing: 14) {
+                VStack(spacing: 20) {
                     ForEach($inputs.items) { $item in
-                        HStack(spacing: 12) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.gray.opacity(0.2))
-                                    .frame(width: 140, height: 90)
-                                Text(item.name.uppercased())
-                                    .font(.headline)
-                            }
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Investment Portfolio\nAllocation")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                                HStack {
-                                    TextField("%", text: $item.allocationPercent)
-                                        .keyboardType(.decimalPad)
-                                        .multilineTextAlignment(.trailing)
-                                        .frame(width: 70, height: 36)
-                                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.5)))
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(.lightGray))
+                            .frame(width: 215, height: 165)
+                            .overlay(alignment: .topTrailing) {
+                                Button {
+                                    if let idx = inputs.items.firstIndex(of: item) {
+                                        inputs.items.remove(at: idx)
+                                    }
+                                } label: {
+                                    Image(systemName: "x.circle")
+                                        .font(.system(size: 30, weight: .bold))
+                                        .padding(10)
                                 }
+                                
                             }
-                            Spacer()
-                            Button {
-                                if let idx = inputs.items.firstIndex(of: item) {
-                                    inputs.items.remove(at: idx)
+                            .overlay(
+                                ZStack {
+                                    VStack {
+                                        Text(item.name)
+                                            .font(.system(size: 30, weight: .black))
+                                        HStack {
+                                            Text("Investment Portfolio Allocation")
+                                                .frame(width:100, alignment: .center)
+                                            
+                                            TextField("%",
+                                                      text: $item.allocationPercent)
+                                            .keyboardType(.decimalPad)
+                                            .padding(.leading, 8)
+                                            .frame(width: 80, height: 35)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .foregroundColor(Color.white)
+                                            )
+                                        }
+                                    }
                                 }
-                            } label: {
-                                Image(systemName: "xmark")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(.horizontal)
+                            )
                     }
                     
                     if inputs.items.isEmpty {
@@ -74,12 +78,20 @@ struct InvestmentView: View {
             }
             
             HStack(spacing: 14) {
-                SmallButton(text: "Add Investment", icon: "plus.circle",
-                            width: 133, fgColor: .orange, bgColor: .white, border: .black) {
+                SmallButton(text: "Add Investment",
+                            icon: "plus.circle",
+                            width: 180,
+                            fgColor: .white,
+                            bgColor: .orange,
+                            border: .orange) {
                     AddInvestmentView(currETF: SelectedETF())
                 }
-                SmallButton(text: "Calculate FIRE", icon: "arrow.right.circle",
-                            width: 133, fgColor: .orange, bgColor: .white, border: .black) {
+                SmallButton(text: "Calculate FIRE",
+                            icon: "arrow.right.circle",
+                            width: 180,
+                            fgColor: .orange,
+                            bgColor: .white,
+                            border: .black) {
                     FireResultView()
                 }
             }
@@ -99,7 +111,16 @@ struct InvestmentView: View {
     let inputs = FireInputs()
     inputs.items = [
         InvestmentItem(name: "VDHG", type: .etf),
-        InvestmentItem(name: "AusGov Bonds", type: .bond)
+        InvestmentItem(name: "AusGov Bonds", type: .bond),
+        InvestmentItem(name: "VDHG", type: .etf),
+        InvestmentItem(name: "VDHG", type: .etf),
+        InvestmentItem(name: "VDHG", type: .etf),
+        InvestmentItem(name: "VDHG", type: .etf),
+        InvestmentItem(name: "VDHG", type: .etf),
+        InvestmentItem(name: "VDHG", type: .etf),
+        InvestmentItem(name: "VDHG", type: .etf),
+        InvestmentItem(name: "VDHG", type: .etf),
+
     ]
     return NavigationStack {
         InvestmentView()
