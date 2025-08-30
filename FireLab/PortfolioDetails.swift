@@ -16,27 +16,10 @@ import SwiftUI
 
 import SwiftUI
 
-enum InvestmentType: String, Codable { case etf, bond }
 
-struct InvestmentItem: Identifiable, Hashable, Codable {
-    let id = UUID()
-    var name: String
-    var type: InvestmentType
-    var allocationPercent: String = ""
-    var amount: String = ""
-    var expectedReturn: String = ""
-    
-    private enum CodingKeys: String, CodingKey {
-           case name, type, allocationPercent, amount, expectedReturn
-       }
-}
-
-final class PortfolioModel: ObservableObject {
-    @Published var items: [InvestmentItem] = []
-}
 
 struct PortfolioDetails: View {
-    @EnvironmentObject var app: AppModel
+    @EnvironmentObject var inputs: FireInputs
     
     var body: some View {
         VStack {
@@ -44,11 +27,11 @@ struct PortfolioDetails: View {
                 .font(.title).bold()
                 .padding(.bottom, 8)
             
-            if app.portfolio.items.isEmpty {
+            if inputs.items.isEmpty {
                 Text("Calculations for investment coming out soon...")
                     .foregroundStyle(.secondary)
             } else {
-                List(app.portfolio.items) { it in
+                List(inputs.items) { it in
                     HStack {
                         Text(it.name)
                         Spacer()
@@ -65,11 +48,11 @@ struct PortfolioDetails: View {
 }
 
 #Preview("Portfolio") {
-    let app = AppModel()
-    app.portfolio.items = [
+    let inputs = FireInputs()
+    inputs.items = [
         InvestmentItem(name: "VDHG", type: .etf, allocationPercent: "60"),
         InvestmentItem(name: "AusGov Bonds", type: .bond, allocationPercent: "40")
     ]
     return NavigationStack { PortfolioDetails() }
-        .environmentObject(app)
+        .environmentObject(inputs)
 }

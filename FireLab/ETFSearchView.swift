@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ETFSearchView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var app: AppModel
+    @EnvironmentObject var inputs: FireInputs
     @ObservedObject var currETF: SelectedETF
     @State private var query = ""
 
@@ -50,5 +50,5 @@ struct ETFSearchView: View {
     NavigationStack {
         ETFSearchView(currETF: SelectedETF())
     }
-        .environmentObject(AppModel())
+        .environmentObject(FireInputs())
 }

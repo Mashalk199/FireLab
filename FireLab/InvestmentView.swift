@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct InvestmentView: View {
-    @EnvironmentObject var app: AppModel
+    @EnvironmentObject var inputs: FireInputs
     
     var body: some View {
         VStack(spacing: 16) {
@@ -30,7 +30,7 @@ struct InvestmentView: View {
             
             ScrollView {
                 VStack(spacing: 14) {
-                    ForEach($app.portfolio.items) { $item in
+                    ForEach($inputs.items) { $item in
                         HStack(spacing: 12) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 8)
@@ -54,8 +54,8 @@ struct InvestmentView: View {
                             }
                             Spacer()
                             Button {
-                                if let idx = app.portfolio.items.firstIndex(of: item) {
-                                    app.portfolio.items.remove(at: idx)
+                                if let idx = inputs.items.firstIndex(of: item) {
+                                    inputs.items.remove(at: idx)
                                 }
                             } label: {
                                 Image(systemName: "xmark")
@@ -65,7 +65,7 @@ struct InvestmentView: View {
                         .padding(.horizontal)
                     }
                     
-                    if app.portfolio.items.isEmpty {
+                    if inputs.items.isEmpty {
                         Text("No investments yet").foregroundStyle(.secondary)
                             .padding(.top, 20)
                     }
@@ -88,21 +88,21 @@ struct InvestmentView: View {
     }
     
     private func binding(for item: InvestmentItem) -> Binding<InvestmentItem> {
-        guard let idx = app.portfolio.items.firstIndex(of: item) else {
+        guard let idx = inputs.items.firstIndex(of: item) else {
             return .constant(item)
         }
-        return $app.portfolio.items[idx]
+        return $inputs.items[idx]
     }
 }
 
 #Preview {
-    let app = AppModel()
-    app.portfolio.items = [
+    let inputs = FireInputs()
+    inputs.items = [
         InvestmentItem(name: "VDHG", type: .etf),
         InvestmentItem(name: "AusGov Bonds", type: .bond)
     ]
     return NavigationStack {
         InvestmentView()
     }
-        .environmentObject(app)
+        .environmentObject(inputs)
 }

@@ -12,7 +12,7 @@ class SelectedETF: ObservableObject {
 
 struct AddInvestmentView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var app: AppModel
+    @EnvironmentObject var inputs: FireInputs
     @ObservedObject var currETF: SelectedETF
     
     @State private var tab = 0   // 0: ETF, 1: Bond
@@ -101,7 +101,7 @@ struct AddInvestmentView: View {
                     ? (currETF.selectedETF ?? "ETF")
                     : (name.isEmpty ? "Bond #1" : name)
                     
-                    app.portfolio.items.append(
+                    inputs.items.append(
                         InvestmentItem(
                             name: displayName,
                             type: tab == 0 ? .etf : .bond,
@@ -111,7 +111,7 @@ struct AddInvestmentView: View {
                         )
                     )
                     currETF.selectedETF = nil
-                    print(app.portfolio.items)
+                    print(inputs.items)
 
                     dismiss()
                 }
@@ -184,7 +184,7 @@ struct RoundedFillButton: View {
 #Preview {
     NavigationStack {
         AddInvestmentView(currETF: SelectedETF())
-            .environmentObject(AppModel())
+            .environmentObject(FireInputs())
             
     }
 }

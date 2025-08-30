@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct AddDetailsHub: View {
-    @EnvironmentObject var app: AppModel
+    @EnvironmentObject var inputs: FireInputs
     @State private var showInvestmentSheet = false
     
     var body: some View {
@@ -18,17 +18,17 @@ struct AddDetailsHub: View {
             
             InputField(
                 label: "Yearly Income",
-                fieldVar: $app.inputs.yearlyIncomeText,
+                fieldVar: $inputs.yearlyIncomeText,
                 placeholder: "$")
             
             InputField(
                 label: "Yearly Non-housing Expenses",
-                fieldVar: $app.inputs.nonHousingText,
+                fieldVar: $inputs.nonHousingText,
                 placeholder: "$")
             
             InputField(
                 label: "Monthly FI Contribution",
-                fieldVar: $app.inputs.FIContributionText,
+                fieldVar: $inputs.FIContributionText,
                 placeholder: "$")
             
             Text("Add details:")
@@ -69,5 +69,5 @@ struct AddDetailsHub: View {
 
 #Preview {
     NavigationStack { AddDetailsHub() }
-        .environmentObject(AppModel())
+        .environmentObject(FireInputs())
 }
