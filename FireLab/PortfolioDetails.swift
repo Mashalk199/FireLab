@@ -33,7 +33,6 @@ struct InvestmentItem: Identifiable, Hashable, Codable {
 
 final class PortfolioModel: ObservableObject {
     @Published var items: [InvestmentItem] = []
-    @Published var selectedETF: String? = nil
 }
 
 struct PortfolioDetails: View {

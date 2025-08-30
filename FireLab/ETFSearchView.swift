@@ -10,6 +10,7 @@ import SwiftUI
 struct ETFSearchView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var app: AppModel
+    @ObservedObject var currETF: SelectedETF
     @State private var query = ""
 
     let all = ["VDHG", "VS&P500", "NZAM Nasdaq 100", "ETF"]
@@ -35,7 +36,7 @@ struct ETFSearchView: View {
 
             List(filtered, id: \.self) { name in
                 Button {
-                    app.portfolio.selectedETF = name
+                    currETF.selectedETF = name
                     dismiss()
                 }
                 label: { Text(name).frame(maxWidth: .infinity, alignment: .leading) }
@@ -47,7 +48,7 @@ struct ETFSearchView: View {
 
 #Preview {
     NavigationStack {
-        ETFSearchView()
+        ETFSearchView(currETF: SelectedETF())
     }
         .environmentObject(AppModel())
 }

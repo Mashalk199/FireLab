@@ -6,10 +6,14 @@
 //
 
 import SwiftUI
+class SelectedETF: ObservableObject {
+    @Published var selectedETF: String?
+}
 
 struct AddInvestmentView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var app: AppModel
+    @ObservedObject var currETF: SelectedETF
     
     @State private var tab = 0   // 0: ETF, 1: Bond
     @State private var name = ""
@@ -36,7 +40,7 @@ struct AddInvestmentView: View {
                             .frame(width: 200, alignment: .leading)
                         
                         NavigationLink("Choose →") {
-                            ETFSearchView()
+                            ETFSearchView(currETF: currETF)
                         }
                         .frame(width: 150, alignment: .trailing)
                     }
@@ -93,8 +97,9 @@ struct AddInvestmentView: View {
                 
                 RoundedFillButton(title: "Add") {
                     let displayName = tab == 0
-                    ? (app.portfolio.selectedETF ?? (name.isEmpty ? "ETF" : name))
-                        : (name.isEmpty ? "Bond #1" : name)
+                    // Uses nil coalescing operator to set etf name
+                    ? (currETF.selectedETF ?? "ETF")
+                    : (name.isEmpty ? "Bond #1" : name)
                     
                     app.portfolio.items.append(
                         InvestmentItem(
@@ -105,7 +110,9 @@ struct AddInvestmentView: View {
                             expectedReturn: expected
                         )
                     )
-                    
+                    currETF.selectedETF = nil
+                    print(app.portfolio.items)
+
                     dismiss()
                 }
             }
@@ -176,7 +183,8 @@ struct RoundedFillButton: View {
 
 #Preview {
     NavigationStack {
-        AddInvestmentView()
+        AddInvestmentView(currETF: SelectedETF())
             .environmentObject(AppModel())
+            
     }
 }

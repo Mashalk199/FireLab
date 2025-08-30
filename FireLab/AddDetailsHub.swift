@@ -60,7 +60,8 @@ struct AddDetailsHub: View {
                 .padding(.trailing, 50)
             }
             .sheet(isPresented: $showInvestmentSheet) {
-                AddInvestmentView()
+                AddInvestmentView(currETF: SelectedETF())
+                    
             }
         }
     }

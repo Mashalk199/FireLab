@@ -30,7 +30,7 @@ struct InvestmentView: View {
             
             ScrollView {
                 VStack(spacing: 14) {
-                    ForEach(app.portfolio.items) { item in
+                    ForEach($app.portfolio.items) { $item in
                         HStack(spacing: 12) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 8)
@@ -45,7 +45,7 @@ struct InvestmentView: View {
                                     .foregroundStyle(.secondary)
                                     .lineLimit(2)
                                 HStack {
-                                    TextField("%", text: binding(for: item).allocationPercent)
+                                    TextField("%", text: $item.allocationPercent)
                                         .keyboardType(.decimalPad)
                                         .multilineTextAlignment(.trailing)
                                         .frame(width: 70, height: 36)
@@ -76,7 +76,7 @@ struct InvestmentView: View {
             HStack(spacing: 14) {
                 SmallButton(text: "Add Investment", icon: "plus.circle",
                             width: 133, fgColor: .orange, bgColor: .white, border: .black) {
-                    AddInvestmentView()
+                    AddInvestmentView(currETF: SelectedETF())
                 }
                 SmallButton(text: "Calculate FIRE", icon: "arrow.right.circle",
                             width: 133, fgColor: .orange, bgColor: .white, border: .black) {
