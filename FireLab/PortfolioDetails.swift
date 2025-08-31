@@ -28,7 +28,7 @@ struct PortfolioDetails: View {
                 .padding(.bottom, 8)
             
             if inputs.items.isEmpty {
-                Text("Calculations for investment coming out soon...")
+                Text("Calculations for portfolios are coming out soon...")
                     .foregroundStyle(.secondary)
             } else {
                 List(inputs.items) { it in

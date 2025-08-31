@@ -47,13 +47,7 @@ struct AddInvestmentView: View {
                     .frame(width: 350)
                     
                     FieldRow(
-                        label: "Investment Value",
-                        text: $amount,
-                        placeholder: "$"
-                    )
-                    
-                    FieldRow(
-                        label: "Expected Yearly Return",
+                        label: "Expected Yearly After-Tax Return",
                         text: $expected,
                         placeholder: "%"
                     )
@@ -75,14 +69,9 @@ struct AddInvestmentView: View {
                         placeholder: "Bond #1"
                     )
                     
-                    FieldRow(
-                        label: "Investment Value",
-                        text: $amount,
-                        placeholder: "$"
-                    )
                     
                     FieldRow(
-                        label: "Expected Yearly Return",
+                        label: "Expected Yearly After-Tax Return",
                         text: $expected,
                         placeholder: "%"
                     )
@@ -107,7 +96,6 @@ struct AddInvestmentView: View {
                             name: displayName,
                             type: tab == 0 ? .etf : .bond,
                             allocationPercent: "",
-                            amount: amount,
                             expectedReturn: expected
                         )
                     )

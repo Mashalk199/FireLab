@@ -15,21 +15,29 @@ struct AddDetailsHub: View {
             
             Logo()
                 .padding([.bottom], 20)
-            
-            InputField(
-                label: "Yearly Income",
-                fieldVar: $inputs.yearlyIncomeText,
-                placeholder: "$")
+            DateField(
+                text: "Date of birth",
+                DOB: $inputs.dateOfBirth)
             
             InputField(
                 label: "Yearly Non-housing Expenses",
-                fieldVar: $inputs.nonHousingText,
+                fieldVar: $inputs.expensesText,
                 placeholder: "$")
             
             InputField(
-                label: "Monthly FI Contribution",
+                label: "Yearly FI Contribution",
                 fieldVar: $inputs.FIContributionText,
                 placeholder: "$")
+            
+            InputField(
+                label: "Assumed Inflation Rate",
+                fieldVar: $inputs.inflationRateText,
+                placeholder: "%")
+            
+            InputField(
+                label: "Assumed Super After-Tax Growth Rate",
+                fieldVar: $inputs.superGrowthRateText,
+                placeholder: "%")
             
             Text("Add details:")
                 .padding(.top, 20)

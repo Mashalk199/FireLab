@@ -32,7 +32,7 @@ struct InvestmentView: View {
                     ForEach($inputs.items) { $item in
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color(.lightGray))
-                            .frame(width: 215, height: 165)
+                            .frame(width: 215, height: 200)
                             .overlay(alignment: .topTrailing) {
                                 Button {
                                     if let idx = inputs.items.firstIndex(of: item) {
@@ -40,7 +40,7 @@ struct InvestmentView: View {
                                     }
                                 } label: {
                                     Image(systemName: "x.circle")
-                                        .font(.system(size: 30, weight: .bold))
+                                        .font(.system(size: 25, weight: .bold))
                                         .padding(10)
                                 }
                                 
@@ -49,10 +49,15 @@ struct InvestmentView: View {
                                 ZStack {
                                     VStack {
                                         Text(item.name)
-                                            .font(.system(size: 30, weight: .black))
+                                            .font(.system(size: 20, weight: .black))
+                                            .frame(width: 170, alignment: .leading)
+                                            .lineLimit(nil)
+                                            .fixedSize(horizontal: false, vertical: true)
                                         HStack {
                                             Text("Investment Portfolio Allocation")
                                                 .frame(width:100, alignment: .center)
+                                                .lineLimit(nil)
+                                                .fixedSize(horizontal: false, vertical: true)
                                             
                                             TextField("%",
                                                       text: $item.allocationPercent)
@@ -87,8 +92,9 @@ struct InvestmentView: View {
                     AddInvestmentView(currETF: SelectedETF())
                 }
                 SmallButton(text: "Calculate FIRE",
+                            fontSize: 16,
                             icon: "arrow.right.circle",
-                            width: 180,
+                            width: 190,
                             fgColor: .orange,
                             bgColor: .white,
                             border: .black) {
@@ -112,14 +118,7 @@ struct InvestmentView: View {
     inputs.items = [
         InvestmentItem(name: "VDHG", type: .etf),
         InvestmentItem(name: "AusGov Bonds", type: .bond),
-        InvestmentItem(name: "VDHG", type: .etf),
-        InvestmentItem(name: "VDHG", type: .etf),
-        InvestmentItem(name: "VDHG", type: .etf),
-        InvestmentItem(name: "VDHG", type: .etf),
-        InvestmentItem(name: "VDHG", type: .etf),
-        InvestmentItem(name: "VDHG", type: .etf),
-        InvestmentItem(name: "VDHG", type: .etf),
-        InvestmentItem(name: "VDHG", type: .etf),
+        InvestmentItem(name: "DB Crude Oil Long Exchange Traded Fund", type: .bond),
 
     ]
     return NavigationStack {

@@ -46,7 +46,8 @@ struct InputField : View {
         HStack {
             Text(label)
                 .frame(width:200, alignment: .leading)
-            
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
             TextField(placeholder,
                       text: $fieldVar)
             .keyboardType(.decimalPad)
@@ -92,6 +93,7 @@ struct MediumButton<Destination: View>: View {
 // Global small navigation/add button
 struct SmallButton<Destination: View>: View {
     var text: String
+    var fontSize: Int = 20
     var icon: String
     var width: Int
     var fgColor: Color
@@ -110,7 +112,7 @@ struct SmallButton<Destination: View>: View {
                     // We use a spacer here, and a spacer after the Text component so that the text lies in the middle of the space between the icon and the button edge
                     Spacer()
                     Text(text)
-                        .font(.system(size: 20))
+                        .font(.system(size: CGFloat(fontSize)))
                         .foregroundColor(fgColor)
                         .padding(.leading, 7)
                         .multilineTextAlignment(.center)
@@ -126,7 +128,7 @@ struct SmallButton<Destination: View>: View {
             .background(
                 RoundedRectangle(
                     cornerRadius: 40)
-                    .stroke(border, lineWidth: 3)
+                    .stroke(border, lineWidth: 2)
                 )
         }
         .padding(.vertical, 15)
@@ -134,3 +136,18 @@ struct SmallButton<Destination: View>: View {
     }
 }
 
+struct DateField : View {
+    var text: String
+    var DOB: Binding<Date>
+    var body: some View {
+        HStack {
+            Text(text)
+                .frame(width: 200, alignment: .leading)
+            DatePicker("",
+                       selection: DOB,
+                       displayedComponents: [.date])
+            .frame(width: 150, height: 35)
+        }
+        .frame(width:300)
+    }
+}

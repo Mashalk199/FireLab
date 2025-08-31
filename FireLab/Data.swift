@@ -7,9 +7,11 @@
 
 import Foundation
 class FireInputs: ObservableObject {
-    @Published var yearlyIncomeText: String = ""
-    @Published var nonHousingText: String = ""
+    @Published var dateOfBirth: Date = Date()
+    @Published var expensesText: String = ""
     @Published var FIContributionText: String = ""
+    @Published var inflationRateText: String = ""
+    @Published var superGrowthRateText: String = ""
     @Published var items: [InvestmentItem] = []
 
 }
@@ -20,10 +22,9 @@ struct InvestmentItem: Identifiable, Hashable, Codable {
     var name: String
     var type: InvestmentType
     var allocationPercent: String = ""
-    var amount: String = ""
     var expectedReturn: String = ""
     
     private enum CodingKeys: String, CodingKey {
-           case name, type, allocationPercent, amount, expectedReturn
+           case name, type, allocationPercent, expectedReturn
        }
 }
