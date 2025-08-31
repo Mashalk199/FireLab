@@ -10,7 +10,7 @@ import SwiftUI
 struct FireGraphsView: View {
     var body: some View {
         VStack(spacing: 16) {
-            Logo().padding(.top, 8)
+            FireLogo().padding(.top, 8)
             ForEach(0..<3) { _ in
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.gray.opacity(0.2))

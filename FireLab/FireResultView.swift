@@ -26,7 +26,7 @@ struct FireResultView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-                    Logo().padding(.top, 8)
+                    FireLogo().padding(.top, 8)
 
                     // Show a plain loading screen first
                     if isCalculating {

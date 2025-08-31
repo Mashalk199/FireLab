@@ -12,7 +12,7 @@ struct InvestmentView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Logo().padding(.top, 8)
+            FireLogo().padding(.top, 8)
             
             HStack {
                 Text("Autocomplete")

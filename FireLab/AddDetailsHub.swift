@@ -13,7 +13,7 @@ struct AddDetailsHub: View {
     var body: some View {
         VStack {
             
-            Logo()
+            FireLogo()
                 .padding([.bottom], 20)
             DateField(
                 text: "Date of birth",

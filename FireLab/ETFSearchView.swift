@@ -25,7 +25,7 @@ struct ETFSearchView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Logo().padding(.top, 8)
+            FireLogo().padding(.top, 8)
             HStack {
                 Image(systemName: "magnifyingglass")
                 TextField("Search", text: $query)

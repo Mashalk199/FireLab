@@ -23,7 +23,7 @@ struct AddInvestmentView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Logo()
+            FireLogo()
                 .padding(.top, 8)
             
             Picker("", selection: $tab) {
