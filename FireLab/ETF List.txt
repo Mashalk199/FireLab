@@ -1,5 +1,4 @@
-name
- DB Crude Oil Long Exchange Traded Fund
+DB Crude Oil Long Exchange Traded Fund
 -1X Short VIX Futures ETF
 21Shares Core Ethereum ETF
 2X Ether ETF

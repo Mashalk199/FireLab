@@ -19,9 +19,6 @@ struct ContentView: View {
                     BigButton(text:"Risky FIRE")
                         .padding([.bottom], 25)
                 }
-                NavigationLink(destination: AddDetailsHub()) {
-                    BigButton(text:"Standard FIRE")
-                }
             }
         }
     }

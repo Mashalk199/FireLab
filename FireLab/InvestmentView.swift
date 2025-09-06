@@ -83,7 +83,7 @@ struct InvestmentView: View {
             }
             
             HStack(spacing: 14) {
-                SmallButton(text: "Add Investment",
+                SmallNavButton(text: "Add Investment",
                             icon: "plus.circle",
                             width: 180,
                             fgColor: .white,
@@ -91,14 +91,14 @@ struct InvestmentView: View {
                             border: .orange) {
                     AddInvestmentView(currETF: SelectedETF())
                 }
-                SmallButton(text: "Calculate FIRE",
+                SmallNavButton(text: "Calculate FIRE",
                             fontSize: 16,
                             icon: "arrow.right.circle",
                             width: 190,
                             fgColor: .orange,
                             bgColor: .white,
                             border: .black) {
-                    FireResultView()
+                    FireResultView(retirementData: RetirementData())
                 }
             }
             .padding(.bottom, 10)

@@ -8,18 +8,35 @@
 import SwiftUI
 import Foundation
 
+
+final class RetirementData: ObservableObject {
+    @Published var brokerageGrowthData: [Double] = []
+    @Published var retirementData: Result = Result(
+        workingDays: 0,
+        retirementDate: Date(),
+        brokerProp: 0.5,
+        monthlyBrokerContribution: 0,
+        monthlySuperContribution: 0,
+        brokerageBalanceAtRetirement: 0,
+        superBalanceAtRetirement: 0,
+    )
+
+}
+struct Result {
+        let workingDays: Int
+        let retirementDate: Date
+        let brokerProp: Double
+        let monthlyBrokerContribution: Double
+        let monthlySuperContribution: Double
+        let brokerageBalanceAtRetirement: Double
+        let superBalanceAtRetirement: Double
+    }
+
 struct FireResultView: View {
     @EnvironmentObject var inputs: FireInputs
-
-    struct Result {
-            let workingDays: Int
-            let retirementDate: Date
-            let brokerProp: Double
-            let monthlyBrokerContribution: Double
-            let monthlySuperContribution: Double
-            let brokerageBalanceAtRetirement: Double
-            let superBalanceAtRetirement: Double
-        }
+    @ObservedObject var retirementData: RetirementData
+    
+    
     
     @State private var isCalculating = true
     @State private var result: Result?
@@ -32,13 +49,15 @@ struct FireResultView: View {
                     if isCalculating {
                         Spacer()
                         Text("Calculating…")
-                            .font(.title3)
+                            .font(.title)
                             .foregroundStyle(.secondary)
                         Text("This might take a minute")
                             .font(.title3)
                             .foregroundStyle(.secondary)
                         Spacer()
                     } else if let r = result {
+//                        retirementData.retirementData = r
+                        
                         let years  = r.workingDays / 365
                         let months = (r.workingDays % 365) / 30
 
@@ -69,12 +88,12 @@ struct FireResultView: View {
                         Spacer()
 
                         HStack(spacing: 14) {
-                            SmallButton(text: "View Graphs", icon: "arrow.right.circle",
-                                        width: 133, fgColor: .white, bgColor: .orange, border: .black.opacity(0.2)) {
-                                //FireGraphsView()
+                            SmallNavButton(text: "View Graphs", icon: "arrow.right.circle",
+                                        width: 150, fgColor: .white, bgColor: .orange, border: .black.opacity(0.2)) {
+                                FireGraphsView(retirementData: retirementData)
                             }
-                            SmallButton(text: "Home", icon: "arrow.clockwise.circle",
-                                        width: 133, fgColor: .orange, bgColor: .white, border: .black) {
+                            SmallNavButton(text: "Home", icon: "arrow.clockwise.circle",
+                                        width: 150, fgColor: .orange, bgColor: .white, border: .black) {
                                 ContentView()
                             }
                         }
@@ -94,7 +113,7 @@ struct FireResultView: View {
             }
         }
     }
-    
+    // Annual return compounded daily
     func getAnnualReturn(_ percentage: Double,_ annual_inflation: Double) -> Double {
         return pow(((1.0 + percentage) / (1.0 + annual_inflation)), (1.0/365.0))
     }
@@ -139,7 +158,7 @@ struct FireResultView: View {
                 monthlyBrokerContribution: 0,
                 monthlySuperContribution: 0,
                 brokerageBalanceAtRetirement: 0,
-                superBalanceAtRetirement: 0
+                superBalanceAtRetirement: 0,
             )
         }
         let days_to_60 = daysBetween(Date(), d60)
@@ -162,25 +181,36 @@ struct FireResultView: View {
         var portfolioList: [Double] = []
         var pre60_growth_tmp: Double = 0
         var post60_growth_tmp: Double = 0
+        
+        var brokerageUsage: [Double] = []
 
 
-        // 12 epochs is more than enough to perform an adequate binary search
-        for _ in 1...12 {
+        // 15 epochs is more than enough to perform an adequate binary search
+        for _ in 1...15 {
             brokerListGrowth = Array(repeating: 0.0, count: ETFList.count)
             superGrowth = 0
+            // Keeps track of how much the user is currently expected to work
             workingDays = 0
+            // Flags keep track of whether user retired on brokerage and/or on super
             retiredBroker = false
             retiredSuper = false
+            
+            brokerageUsage = []
             
             /* Because either of the retired broker days or super days can get reset during
               the outer for loop, we use these outer variables to store the days of retirement */
             final_pre60_days = nil      // Capture once when brokerage becomes first feasible
             final_post60_days = nil     // Capture once when super becomes first feasible
             
+            /* Runs while the number of day of work is less than the days it takes to reach 67
+                as by then the user will retire, and while the user isn't retired. */
             while workingDays < days_to_67 && !(retiredBroker && retiredSuper) {
+                /* Allocates portions of the Financial Independence contribution to super and brokerage
+                 based on the current proportions of brokerage and super*/
                 brokerCont = brokerProp * dailyFiCont
                 superCont  = superProp  * dailyFiCont
                 
+                // Iterates through each investment item and grows them based on how much allocation they have
                 for j in 0..<ETFList.count {
                     allocation_tmp = getDouble(ETFList[j].allocationPercent)
                     brokerListGrowth[j] += brokerCont * (allocation_tmp / 100.0)
@@ -188,6 +218,9 @@ struct FireResultView: View {
                         getDouble(ETFList[j].expectedReturn) / 100.0,
                         annual_inflation)
                 }
+                // Store the growth of the brokerage investments for future graph plotting
+                brokerageUsage.append(brokerListGrowth.reduce(0, +))
+
                 // Grow super by 1 day of investments
                 superGrowth += superCont
                 superGrowth *= superGrowthRate
@@ -199,6 +232,10 @@ struct FireResultView: View {
                 
                 portfolioList = brokerListGrowth
                 // .reduce(0, +) gets the total sum of the array
+                /* Here we reduce the current value of the brokerage investment to basically zero, to
+                 see whether the user can retire on it until the age of 60 or not. If the user reaches 60
+                 without retiring, the retiredBroker flag remains false, and the brokerage investment
+                 will continue to grow via more working days. */
                 while portfolioList.reduce(0, +) >= daily_expenses &&
                         !retiredBroker &&
                         (workingDays + retiredDays_tmp < days_to_60) {
@@ -219,6 +256,7 @@ struct FireResultView: View {
                 remain_to_60 = max(0, days_to_60 - workingDays)
                 // balance AT 60 if user retires now
                 portfolio = superGrowth * pow(superGrowthRate, Double(remain_to_60))
+                // Super is also reduced to 0, to see whether retirement is possible
                 while portfolio >= daily_expenses && !retiredSuper {
                     portfolio -= daily_expenses
                     portfolio *= superGrowthRate
@@ -236,8 +274,13 @@ struct FireResultView: View {
                     retiredSuper  = true
                 }
             }
+            
             totalRetiredDays = 0
             portfolioList = brokerListGrowth
+            /* Here we see the magnitude of how long the brokerage investment will last the user
+             without stopping the reduction of the value of the brokerage when the user reaches the
+             age of preservation. The value will keep decreasing until it is basically zero. This gives the
+             actual value of how long the investment could fully last*/
             while portfolioList.reduce(0, +) >= daily_expenses {
                 for j in 0..<ETFList.count {
                     allocation_tmp = getDouble(ETFList[j].allocationPercent)
@@ -250,19 +293,21 @@ struct FireResultView: View {
             remain_to_60 = max(0, days_to_60 - workingDays)
             totalRetiredSuperDays = 0
             portfolio = superGrowth * pow(superGrowthRate, Double(remain_to_60))
+            // This loop gives the true value of how long the super could fully last
             while portfolio >= daily_expenses {
                 portfolio -= daily_expenses
                 portfolio *= superGrowthRate
                 totalRetiredSuperDays += 1
             }
+            // Number of days user can retire early, before 60
             potential_pre60 = max(1, days_to_60 - workingDays) // avoid /0 when retiring at/after 60
             
             /* Here we calculate sort of like a "gradient" to see which range we should look to proportion
              the financial independence contribution towards brokerage funds or super funds to ensure earliest
              retirement.*/
              
-             /* The magnitude of how much brokerage growth is achieved in this epoch compared to the necessary
-             (minimum amount) */
+             /* The magnitude of how much brokerage growth is achieved in this epoch (eg. totalRetiredDays) compared to the necessary
+             minimum amount (eg. potential_pre60 */
             pre60_growth_tmp = Double(totalRetiredDays)/Double(potential_pre60)
             post60_growth_tmp = Double(totalRetiredSuperDays)/Double(days_during_super)
             /* If the ratio of actual retired days before 60 to potential retired days
@@ -297,6 +342,32 @@ struct FireResultView: View {
         // super balance at 60 if retiring now from last epoch state
         let remain_to_60_final = max(0, days_to_60 - workingDays)
         let superAt60 = superGrowth * pow(superGrowthRate, Double(remain_to_60_final))
+        
+        
+        retiredDays_tmp = 0
+        retiredSuperDays_tmp = 0
+        retiredBroker = false
+        retiredSuper = false
+        
+        portfolioList = brokerListGrowth
+        // .reduce(0, +) gets the total sum of the array
+        while portfolioList.reduce(0, +) >= daily_expenses &&
+                !retiredBroker &&
+                (workingDays + retiredDays_tmp < days_to_60) {
+            for j in 0..<ETFList.count {
+                allocation_tmp = getDouble(ETFList[j].allocationPercent)
+                portfolioList[j] -= daily_expenses * (allocation_tmp / 100.0)
+                return_tmp = getDouble(ETFList[j].expectedReturn) / 100.0
+                portfolioList[j] *= getAnnualReturn(return_tmp, annual_inflation)
+
+            }
+            brokerageUsage.append(portfolioList.reduce(0, +))
+            retiredDays_tmp += 1
+            if workingDays + retiredDays_tmp >= days_to_60 {
+                retiredBroker = true
+            }
+        }
+        retirementData.brokerageGrowthData = brokerageUsage
 
         return Result(
             workingDays: workingDays,
@@ -305,7 +376,7 @@ struct FireResultView: View {
             monthlyBrokerContribution: monthlyBroker,
             monthlySuperContribution: monthlySuper,
             brokerageBalanceAtRetirement: brokerageAtRet,
-            superBalanceAtRetirement: superAt60
+            superBalanceAtRetirement: superAt60,
         )
     }
 
@@ -316,10 +387,9 @@ struct FireResultView: View {
 
 
 
-
 #Preview {
     NavigationStack {
-        FireResultView()
+        FireResultView(retirementData: RetirementData())
             .environmentObject(FireInputs())
     }
 }
