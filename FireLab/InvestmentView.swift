@@ -11,9 +11,10 @@ struct InvestmentView: View {
     @EnvironmentObject var inputs: FireInputs
     var totalPercent: Double {
         inputs.items
-                .compactMap { Double($0.allocationPercent.trimmingCharacters(in: .whitespaces)) }
-                .reduce(0, +)
-        }
+            .map { Double($0.allocationPercent.trimmingCharacters(in: .whitespaces)) ?? 0 }
+            .reduce(0, +)
+    }
+
     //AddInvestment - it is equal to 100%
     var canCalculate: Bool {
         !inputs.items.isEmpty && abs(totalPercent - 100) < 0.0001
@@ -113,6 +114,24 @@ struct InvestmentView: View {
                 }
             }
             .padding(.bottom, 10)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            ZStack {
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 60, height: 60)
+                VStack {
+                    Text("Total")
+                        .font(.system(size: 13))
+                    Text("\(totalPercent, specifier: "%.1f")%")
+                        .font(.system(size: 13))
+
+                }
+                
+            }
+            .padding(.trailing, 20)
+            .padding(.bottom, 180)
+            
         }
     }
     
