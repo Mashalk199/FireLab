@@ -57,7 +57,7 @@ struct AddDetailsHub: View {
                 label: "Yearly FI Contribution",
                 fieldVar: $inputs.FIContributionText,
                 placeholder: "$",
-                helpText: "FIRE = Financial Independence. How much will you pay towards all loans and investments, including mortgage.")
+                helpText: "FIRE/FI = Financial Independence. How much will you pay towards all loans and investments, including mortgage.")
             
             InputField(
                 label: "Assumed Inflation Rate",
