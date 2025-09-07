@@ -211,3 +211,52 @@ struct DateField : View {
         .frame(width:300)
     }
 }
+
+struct InvestmentAllocationCard : View {
+    @Binding var item: InvestmentItem
+    @Binding var itemList: [InvestmentItem]
+    var body: some View {
+        RoundedRectangle(cornerRadius: 20)
+            .fill(Color(.lightGray))
+            .frame(width: 215, height: 200)
+            .overlay(alignment: .topTrailing) {
+                Button {
+                    if let idx = itemList.firstIndex(of: item) {
+                        itemList.remove(at: idx)
+                    }
+                } label: {
+                    Image(systemName: "x.circle")
+                        .font(.system(size: 25, weight: .bold))
+                        .padding(10)
+                }
+                
+            }
+            .overlay(
+                ZStack {
+                    VStack {
+                        Text(item.name)
+                            .font(.system(size: 20, weight: .black))
+                            .frame(width: 170, alignment: .leading)
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
+                        HStack {
+                            Text("Investment Portfolio Allocation")
+                                .frame(width:100, alignment: .center)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            TextField("%",
+                                      text: $item.allocationPercent)
+                            .keyboardType(.decimalPad)
+                            .padding(.leading, 8)
+                            .frame(width: 80, height: 35)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .foregroundColor(Color.white)
+                            )
+                        }
+                    }
+                }
+            )
+    }
+}

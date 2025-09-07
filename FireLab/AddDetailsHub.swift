@@ -11,7 +11,6 @@ struct AddDetailsHub: View {
     @State private var showInvestmentSheet = false
     @State private var goNext = false
     @State private var errorText: String?
-    @State private var showHelp = false
     // Function to validate all user inputs
     func validate() -> Bool {
             let cal = Calendar.current

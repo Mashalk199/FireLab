@@ -17,14 +17,47 @@ struct AddInvestmentView: View {
     
     @State private var tab = 0   // 0: ETF, 1: Bond
     @State private var name = ""
-    @State private var amount = ""
+//    @State private var amount = ""
     @State private var expected = ""
     @State private var autoCalc = false
+    @State private var errorText: String?
+
+    func validate() -> Bool {
+        if tab == 0 {
+            guard let _ = currETF.selectedETF
+            else {
+                errorText = "Please select an ETF"; return false }
+        }
+        else if tab == 1 {
+            if name == "" {
+                errorText = "Please create a bond name"
+                return false
+            }
+        }
+        
+        guard let expectedETFReturn = Double(expected),
+                expectedETFReturn <= 100, expectedETFReturn > 0
+        else {
+            errorText = "Enter 100 >= Expected Return > 0"; return false }
+            
+        errorText = nil
+        return true
+    }
     
     var body: some View {
         VStack(spacing: 16) {
             FireLogo()
                 .padding(.top, 8)
+            if let msg = errorText {
+                Text(msg)
+                    .foregroundStyle(.red)
+                    .font(.footnote)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: 400, alignment: .center)
+                    .padding(.horizontal)
+                }
             
             Picker("", selection: $tab) {
                 Text("ETF").tag(0)
@@ -86,23 +119,26 @@ struct AddInvestmentView: View {
                 }
                 
                 RoundedFillButton(title: "Add") {
-                    let displayName = tab == 0
-                    // Uses nil coalescing operator to set etf name
-                    ? (currETF.selectedETF ?? "ETF")
-                    : (name.isEmpty ? "Bond #1" : name)
                     
-                    inputs.items.append(
-                        InvestmentItem(
-                            name: displayName,
-                            type: tab == 0 ? .etf : .bond,
-                            allocationPercent: "",
-                            expectedReturn: expected
+                    if validate() {
+                        let displayName = tab == 0
+                        // Uses nil coalescing operator to set etf name
+                        ? (currETF.selectedETF ?? "ETF")
+                        : (name.isEmpty ? "Bond #1" : name)
+                        
+                        inputs.items.append(
+                            InvestmentItem(
+                                name: displayName,
+                                type: tab == 0 ? .etf : .bond,
+                                allocationPercent: "",
+                                expectedReturn: expected
+                            )
                         )
-                    )
-                    currETF.selectedETF = nil
-                    print(inputs.items)
-
-                    dismiss()
+                        currETF.selectedETF = nil
+                        print(inputs.items)
+                        
+                        dismiss()
+                    }
                 }
             }
             .padding(.bottom, 14)

@@ -16,9 +16,14 @@ struct InvestmentView: View {
             
             HStack {
                 Text("Autocomplete")
-                    .font(.footnote)
-                    .padding(.horizontal, 10).padding(.vertical, 6)
-                    .background(Capsule().stroke(Color.gray.opacity(0.4), lineWidth: 1))
+                    .font(.system(size: 12))
+                    .padding(.horizontal, 15).padding(.vertical, 10)
+                    .foregroundColor(.white)
+                    .background(
+                        Capsule()
+                            .fill(Color.blue)
+                    )
+
             }.padding(.horizontal)
             
             Text("*Proportions must add up to 100%")
@@ -30,48 +35,7 @@ struct InvestmentView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     ForEach($inputs.items) { $item in
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(.lightGray))
-                            .frame(width: 215, height: 200)
-                            .overlay(alignment: .topTrailing) {
-                                Button {
-                                    if let idx = inputs.items.firstIndex(of: item) {
-                                        inputs.items.remove(at: idx)
-                                    }
-                                } label: {
-                                    Image(systemName: "x.circle")
-                                        .font(.system(size: 25, weight: .bold))
-                                        .padding(10)
-                                }
-                                
-                            }
-                            .overlay(
-                                ZStack {
-                                    VStack {
-                                        Text(item.name)
-                                            .font(.system(size: 20, weight: .black))
-                                            .frame(width: 170, alignment: .leading)
-                                            .lineLimit(nil)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                        HStack {
-                                            Text("Investment Portfolio Allocation")
-                                                .frame(width:100, alignment: .center)
-                                                .lineLimit(nil)
-                                                .fixedSize(horizontal: false, vertical: true)
-                                            
-                                            TextField("%",
-                                                      text: $item.allocationPercent)
-                                            .keyboardType(.decimalPad)
-                                            .padding(.leading, 8)
-                                            .frame(width: 80, height: 35)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .foregroundColor(Color.white)
-                                            )
-                                        }
-                                    }
-                                }
-                            )
+                        InvestmentAllocationCard(item: $item, itemList: $inputs.items)
                     }
                     
                     if inputs.items.isEmpty {
@@ -119,7 +83,6 @@ struct InvestmentView: View {
         InvestmentItem(name: "VDHG", type: .etf),
         InvestmentItem(name: "AusGov Bonds", type: .bond),
         InvestmentItem(name: "DB Crude Oil Long Exchange Traded Fund", type: .bond),
-
     ]
     return NavigationStack {
         InvestmentView()
