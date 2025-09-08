@@ -17,7 +17,7 @@ struct InvestmentView: View {
 
     //AddInvestment - it is equal to 100%
     var canCalculate: Bool {
-        !inputs.items.isEmpty && abs(totalPercent - 100) < 0.0001
+        !inputs.items.isEmpty && abs(totalPercent - 100) < 0.01
     }
     // Autocomplete all unfilled allocations with an equal allocation
     func autocompleteAllocations() {
@@ -71,6 +71,8 @@ struct InvestmentView: View {
 
                 }.padding(.horizontal)
             }
+            .accessibilityLabel("Autocomplete")
+            .accessibilityHint("Autocomplete all unfilled allocations with an equal allocation")
             
             
             
@@ -100,7 +102,8 @@ struct InvestmentView: View {
                             width: 180,
                             fgColor: .white,
                             bgColor: .orange,
-                            border: .orange) {
+                            border: .orange,
+                            hint: "Add an investment to your list") {
                     AddInvestmentView(currETF: SelectedETF())
                 }
                 SmallNavButton(text: "Calculate FIRE",
@@ -109,7 +112,8 @@ struct InvestmentView: View {
                             width: 190,
                             fgColor: .orange,
                             bgColor: .white,
-                            border: .black) {
+                            border: .black,
+                            hint: "Proceed to calculation") {
                     FireResultView(retirementData: RetirementData())
                 }
             }
@@ -128,11 +132,15 @@ struct InvestmentView: View {
 
                 }
                 
+                
             }
             .padding(.trailing, 20)
             .padding(.bottom, 180)
             
         }
+        .accessibilityLabel("Total allocation: \(totalPercent, specifier: "%.1f")%")
+        .accessibilityValue("\(totalPercent, specifier: "%.1f")%")
+        .accessibilityHint("Total amount you have allocated across all your investments. You may proceed to calculation if your total allocation is 100% exactly.")
     }
     
     private func binding(for item: InvestmentItem) -> Binding<InvestmentItem> {

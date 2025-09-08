@@ -89,11 +89,11 @@ struct FireResultView: View {
 
                         HStack(spacing: 14) {
                             SmallNavButton(text: "View Graphs", icon: "arrow.right.circle",
-                                        width: 150, fgColor: .white, bgColor: .orange, border: .black.opacity(0.2)) {
+                                           width: 150, fgColor: .white, bgColor: .orange, border: .black.opacity(0.2), hint: "Opens graphs page") {
                                 FireGraphsView(retirementData: retirementData)
                             }
                             SmallNavButton(text: "Home", icon: "arrow.clockwise.circle",
-                                        width: 150, fgColor: .orange, bgColor: .white, border: .black) {
+                                           width: 150, fgColor: .orange, bgColor: .white, border: .black, hint: "Returns to home page") {
                                 ContentView()
                             }
                         }

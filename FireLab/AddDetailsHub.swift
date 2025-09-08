@@ -52,12 +52,14 @@ struct AddDetailsHub: View {
                 label: "Yearly Non-housing Expenses",
                 fieldVar: $inputs.expensesText,
                 placeholder: "$")
+
             
             InputField(
                 label: "Yearly FI Contribution",
                 fieldVar: $inputs.FIContributionText,
                 placeholder: "$",
                 helpText: "FIRE/FI = Financial Independence. How much will you pay towards all loans and investments, including mortgage.")
+
             
             InputField(
                 label: "Assumed Inflation Rate",
@@ -72,16 +74,19 @@ struct AddDetailsHub: View {
             Text("Add details:")
                 .padding(.top, 20)
             
-            MediumButton(text: "Housing") {
+            MediumButton(text: "Housing",
+                         hint: "Opens housing details page") {
                 HousingDetails()
             }
             
             
-            MediumButton(text: "Other Loans") {
+            MediumButton(text: "Other Loans",
+                         hint: "Opens other loans details page") {
                 OtherLoanDetails()
             }
             
-            MediumButton(text: "Investment Portfolio") {
+            MediumButton(text: "Investment Portfolio",
+                         hint: "Opens current portfolio details page") {
                 PortfolioDetails()
             }
             
@@ -99,6 +104,8 @@ struct AddDetailsHub: View {
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing, 50)
+                .accessibilityLabel("Next")
+                .accessibilityHint("Opens next page")
             }
             
 

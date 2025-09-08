@@ -16,7 +16,8 @@ struct ContentView: View {
                 FireLogo()
                     .padding([.bottom], 160)
                 NavigationLink(destination: AddDetailsHub()) {
-                    BigButton(text:"Risky FIRE")
+                    BigButton(text:"Risky FIRE",
+                              hint:"Opens financial independence details page")
                         .padding([.bottom], 25)
                 }
             }

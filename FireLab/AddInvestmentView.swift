@@ -22,6 +22,7 @@ struct AddInvestmentView: View {
     @State private var autoCalc = false
     @State private var errorText: String?
 
+    //TODO: Add accessibility annotations for error message being displayed
     func validate() -> Bool {
         if tab == 0 {
             guard let _ = currETF.selectedETF
@@ -58,13 +59,15 @@ struct AddInvestmentView: View {
                     .frame(maxWidth: 400, alignment: .center)
                     .padding(.horizontal)
                 }
-            
-            Picker("", selection: $tab) {
+            //TODO: Accessibility annotate
+            Picker("Investment type", selection: $tab) {
                 Text("ETF").tag(0)
                 Text("Bond").tag(1)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
+            .accessibilityLabel("Select investment type")
+
             
             if tab == 0 {
                 VStack(spacing: 12) {
@@ -93,6 +96,8 @@ struct AddInvestmentView: View {
                     )
                     .disabled(true)
                     .padding(.horizontal)
+                    .accessibilityLabel("Let FireLab handle yearly return")
+                    .accessibilityValue(autoCalc ? "true" : "false")
                 }
             } else {
                 VStack(spacing: 12) {
@@ -117,6 +122,7 @@ struct AddInvestmentView: View {
                 RoundedBorderButton(title: "Cancel") {
                     dismiss()
                 }
+                .accessibilityLabel("Cancel adding investment")
                 
                 RoundedFillButton(title: "Add") {
                     
@@ -140,6 +146,8 @@ struct AddInvestmentView: View {
                         dismiss()
                     }
                 }
+                .accessibilityLabel("Add investment")
+                
             }
             .padding(.bottom, 14)
         }
@@ -165,6 +173,8 @@ struct FieldRow: View {
                 )
         }
         .frame(width: 350, alignment: .leading)
+        .accessibilityLabel(label)
+        .accessibilityValue(text.isEmpty ? "Empty" : text)
     }
 }
 

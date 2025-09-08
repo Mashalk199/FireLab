@@ -19,6 +19,7 @@ struct Logo : View {
 }
 struct BigButton : View {
     var text: String
+    var hint: String
     var body: some View {
         Text(text)
             .font(.system(size: 36))
@@ -28,6 +29,8 @@ struct BigButton : View {
                 RoundedRectangle(cornerRadius: 40)
                     .stroke(Color.black, lineWidth: 1)
             )
+            .accessibilityLabel(text)
+            .accessibilityHint(hint)
     }
 }
 
@@ -44,12 +47,11 @@ struct InputField : View {
         }()
     
     var body: some View {
-        // .firstTextBaseline properly aligns the text and inputfields
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        HStack(alignment: .center, spacing: 8) {
             Text(label)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
-                .layoutPriority(1)                    
+                .layoutPriority(1)
                 .padding(.trailing, 22)
                 .frame(width:200, alignment: .leading)
                 .overlay(alignment: .trailing) {
@@ -63,15 +65,24 @@ struct InputField : View {
                       text: $fieldVar)
             .keyboardType(.decimalPad)
             .frame(width: 150, height: 35)
-            .border(Color.gray)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(.gray.opacity(0.5))
+            )
         }
         .padding(.vertical, 5)
+        // We will also add accessibility labels
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(label))
+        .accessibilityValue(Text(fieldVar.isEmpty ? "Empty" : fieldVar))
+        .accessibilityHint(Text(helpText ?? ""))
     }
 }
 
 // This medium button is used on screen 2, the AddDetailsHub
 struct MediumButton<Destination: View>: View {
     var text: String
+    var hint: String
     @ViewBuilder var destination: () -> Destination
     var body: some View {
         NavigationLink {
@@ -97,7 +108,8 @@ struct MediumButton<Destination: View>: View {
         }
         .padding(.vertical, 15)
         .buttonStyle(.plain)
-
+        .accessibilityLabel(text)
+        .accessibilityHint(hint)
     }
 }
 // Global small navigation/add button
@@ -109,6 +121,7 @@ struct SmallNavButton<Destination: View>: View {
     var fgColor: Color
     var bgColor: Color
     var border: Color
+    var hint: String
     @ViewBuilder var destination: () -> Destination
     
     var body: some View {
@@ -126,6 +139,8 @@ struct SmallNavButton<Destination: View>: View {
         }
         .padding(.vertical, 15)
         .buttonStyle(.plain)
+        .accessibilityLabel(text)
+        .accessibilityHint(hint)
     }
 }
 struct SmallButtonView: View {
@@ -207,6 +222,7 @@ struct DateField : View {
                        selection: DOB,
                        displayedComponents: [.date])
             .frame(width: 150, height: 35)
+            .accessibilityLabel(text)
         }
         .frame(width:300)
     }
@@ -220,7 +236,8 @@ struct InvestmentAllocationCard : View {
             .fill(Color(.lightGray))
             .frame(width: 215, height: 200)
             .overlay(alignment: .topTrailing) {
-                Button {
+                // Add .destructive annotation as per accessibility HIG
+                Button(role: .destructive) {
                     if let idx = itemList.firstIndex(of: item) {
                         itemList.remove(at: idx)
                     }
@@ -228,8 +245,11 @@ struct InvestmentAllocationCard : View {
                     Image(systemName: "x.circle")
                         .font(.system(size: 25, weight: .bold))
                         .padding(10)
+                    // Hides this icon from being dictated by voiceover
+                        .accessibilityHidden(true)
                 }
-                
+                .accessibilityLabel("Delete \(item.name) investment")
+                .accessibilityHint("Removes this investment from the list")
             }
             .overlay(
                 ZStack {
@@ -239,6 +259,7 @@ struct InvestmentAllocationCard : View {
                             .frame(width: 170, alignment: .leading)
                             .lineLimit(nil)
                             .fixedSize(horizontal: false, vertical: true)
+                        
                         HStack {
                             Text("Investment Portfolio Allocation")
                                 .frame(width:100, alignment: .center)
@@ -254,8 +275,19 @@ struct InvestmentAllocationCard : View {
                                 RoundedRectangle(cornerRadius: 10)
                                     .foregroundColor(Color.white)
                             )
+                            .accessibilityLabel("\(item.name) investment allocation percentage")
+                            .accessibilityValue(
+                              Text(item.allocationPercent.isEmpty
+                                   ? "Empty"
+                                   : "\(item.allocationPercent) percent")
+                            )
+                            .accessibilityHint("Edit the allocation percentage")
+
                         }
                     }
+                    // Logically groups these views of text and textfields for accessibility
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel(Text("\(item.name), Allocation"))
                 }
             )
     }
