@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CA9C48482E6FE09700B603A9 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = CA9C48472E6FE08E00B603A9 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		CA3638C92E546A5700F8E067 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		CA3638BB2E546A5600F8E067 /* FireLab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA3638C82E546A5700F8E067 /* FireLabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireLabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA3638D22E546A5700F8E067 /* FireLabUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireLabUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA9C48472E6FE08E00B603A9 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		CA3638B22E546A5600F8E067 = {
 			isa = PBXGroup;
 			children = (
+				CA9C48472E6FE08E00B603A9 /* .gitignore */,
 				CA3638BD2E546A5600F8E067 /* FireLab */,
 				CA3638CB2E546A5700F8E067 /* FireLabTests */,
 				CA3638D52E546A5700F8E067 /* FireLabUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA9C48482E6FE09700B603A9 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
