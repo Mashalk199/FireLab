@@ -14,7 +14,7 @@ struct AddDetailsHub: View {
     @State private var errorText: String?
     @AccessibilityFocusState private var errorFocused: Bool
 
-    // Function to validate all user inputs
+    /// Function to validate all user inputs
     func validate() -> Bool {
             let cal = Calendar.current
             guard let latest_date_years = cal.date(byAdding: .year, value: -14, to: Date()), inputs.dateOfBirth < latest_date_years else {
@@ -37,6 +37,7 @@ struct AddDetailsHub: View {
             
             FireLogo()
                 .padding([.bottom], 20)
+            // Here we display the error message if it has been set.
             if let msg = errorText {
                 Text(msg)
                     .foregroundStyle(.red)
