@@ -265,23 +265,40 @@ struct InvestmentAllocationCard : View {
                                 .frame(width:100, alignment: .center)
                                 .lineLimit(nil)
                                 .fixedSize(horizontal: false, vertical: true)
-                            
-                            TextField("%",
-                                      text: $item.allocationPercent)
-                            .keyboardType(.decimalPad)
-                            .padding(.leading, 8)
-                            .frame(width: 80, height: 35)
-                            .background(
+                            ZStack {
                                 RoundedRectangle(cornerRadius: 10)
                                     .foregroundColor(Color.white)
-                            )
-                            .accessibilityLabel("\(item.name) investment allocation percentage")
-                            .accessibilityValue(
-                              Text(item.allocationPercent.isEmpty
-                                   ? "Empty"
-                                   : "\(item.allocationPercent) percent")
-                            )
-                            .accessibilityHint("Edit the allocation percentage")
+                                TextField("%",
+                                          text: $item.allocationPercent)
+                                .keyboardType(.decimalPad)
+                                .padding(.leading, 8)
+                                .accessibilityLabel("\(item.name) investment allocation percentage")
+                                .accessibilityValue(
+                                    Text(item.allocationPercent.isEmpty
+                                         ? "Empty"
+                                         : "\(item.allocationPercent) percent")
+                                )
+                                .accessibilityHint("Edit the allocation percentage")
+                                // Adds a clear button to make it easy to clear the allocation of for percentages, improving the user experience
+                                HStack {
+                                    Spacer()
+                                    if !item.allocationPercent.isEmpty {
+                                        Button {
+                                            item.allocationPercent = ""
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.gray.opacity(0.6))
+                                        }
+                                        .padding(.trailing, 8)
+                                        .accessibilityLabel("Clear allocation")
+                                        .accessibilityHint("Clears the allocation percentage for \(item.name)")
+                                        .accessibilityAddTraits(.isButton)
+                                    }
+                                }
+                            }
+                            .frame(width: 80, height: 35)
+                            
+
 
                         }
                     }

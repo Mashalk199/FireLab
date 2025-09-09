@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import UIKit
+
 class SelectedETF: ObservableObject {
     @Published var selectedETF: String?
 }
@@ -21,8 +23,8 @@ struct AddInvestmentView: View {
     @State private var expected = ""
     @State private var autoCalc = false
     @State private var errorText: String?
+    @AccessibilityFocusState private var errorFocused: Bool
 
-    //TODO: Add accessibility annotations for error message being displayed
     func validate() -> Bool {
         if tab == 0 {
             guard let _ = currETF.selectedETF
@@ -58,11 +60,23 @@ struct AddInvestmentView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: 400, alignment: .center)
                     .padding(.horizontal)
+                
+                    // Accessibility: mark and focus the error
+                    .accessibilityLabel("Error: \(msg)")
+                    .accessibilityHint("Fix the fields below, then try again.")
+                    // read before other content
+                    .accessibilitySortPriority(1000)
+                    .accessibilityAddTraits(.isStaticText)
+                
+                    .accessibilityFocused($errorFocused)
                 }
-            //TODO: Accessibility annotate
             Picker("Investment type", selection: $tab) {
                 Text("ETF").tag(0)
+                    .accessibilityLabel("Exchange-traded fund")
+                    .accessibilityHint("Select to enter details about an ETF investment")
                 Text("Bond").tag(1)
+                    .accessibilityLabel("Bond")
+                    .accessibilityHint("Select to enter details about a bond investment")
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
@@ -151,6 +165,15 @@ struct AddInvestmentView: View {
             }
             .padding(.bottom, 14)
         }
+        .onChange(of: errorText) {
+            if let msg = errorText {
+                UIAccessibility.post(notification: .announcement, argument: "Error: \(msg)")
+                // Jump to the accessibility focus state in the error message above
+                errorFocused = true
+            }
+        }
+
+        
     }
 }
 

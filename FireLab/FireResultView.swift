@@ -74,15 +74,23 @@ struct FireResultView: View {
 
                         VStack(spacing: 6) {
                             Text("Brokerage at retirement: $\(String(format: "%.0f", r.brokerageBalanceAtRetirement))")
+                                .accessibilityLabel("Brokerage at retirement \(r.brokerageBalanceAtRetirement, format: .currency(code: "AUD"))")
+
                             Text("Super at retirement: $\(String(format: "%.0f", r.superBalanceAtRetirement))")
+                                .accessibilityLabel("Super at retirement \(r.superBalanceAtRetirement, format: .currency(code: "AUD"))")
                         }
                         .font(.headline)
 
                         VStack(spacing: 4) {
                             Text("Proportion to Brokerage: \(String(format: "%.2f%%", r.brokerProp * 100))")
                                 .foregroundStyle(.secondary)
+                                .accessibilityLabel("Proportion allocated to Brokerage, \(r.brokerProp * 100, specifier: "%.1f") percent")
+                            
                             Text("Recommended Monthly Contribution To Brokerage: $\(String(format: "%.0f", r.monthlyBrokerContribution))")
+                                .accessibilityLabel("Recommended Monthly Contribution To Brokerage: $\(r.monthlyBrokerContribution, format: .currency(code: "AUD"))")
+                            
                             Text("Recommended Monthly Contribution To Super: $\(String(format: "%.0f", r.monthlySuperContribution))")
+                                .accessibilityLabel("Recommended Monthly Contribution To Super: $\(r.monthlySuperContribution, format: .currency(code: "AUD"))")
                         }
 
                         Spacer()

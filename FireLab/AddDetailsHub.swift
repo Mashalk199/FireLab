@@ -5,12 +5,15 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct AddDetailsHub: View {
     @EnvironmentObject var inputs: FireInputs
     @State private var showInvestmentSheet = false
     @State private var goNext = false
     @State private var errorText: String?
+    @AccessibilityFocusState private var errorFocused: Bool
+
     // Function to validate all user inputs
     func validate() -> Bool {
             let cal = Calendar.current
@@ -43,6 +46,15 @@ struct AddDetailsHub: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: 400, alignment: .center)
                     .padding(.horizontal)
+                
+                    // Accessibility: mark and focus the error
+                    .accessibilityLabel("Error: \(msg)")
+                    .accessibilityHint("Fix the fields below, then try again.")
+                    // read before other content
+                    .accessibilitySortPriority(1000)
+                    .accessibilityAddTraits(.isStaticText)
+                
+                    .accessibilityFocused($errorFocused)
                 }
             DateField(
                 text: "Date of birth",
@@ -109,6 +121,13 @@ struct AddDetailsHub: View {
             }
             
 
+        }
+        .onChange(of: errorText) {
+            if let msg = errorText {
+                UIAccessibility.post(notification: .announcement, argument: "Error: \(msg)")
+                // Jump to the accessibility focus state in the error message above
+                errorFocused = true
+            }
         }
         .navigationDestination(isPresented: $goNext) {
                     InvestmentView()

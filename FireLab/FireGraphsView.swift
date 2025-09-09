@@ -24,6 +24,7 @@ struct FireGraphsView: View {
     // Stable base date so previews don't shift every recompute
     private let baseDate = ISO8601DateFormatter().date(from: "2025-01-01T00:00:00Z")!
     //TODO: make this date dynamic
+        //Maybe set the date to midnight of the CURRENT day
 
     var brokerageGrowthSeries: [SamplePoint] {
         let cal = Calendar.current
