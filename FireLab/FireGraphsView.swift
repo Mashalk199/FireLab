@@ -12,6 +12,7 @@ struct PetData: Identifiable {
     var year: Int
     var population: Double
 }
+
 struct SamplePoint: Identifiable {
     let id = UUID()
     let date: Date

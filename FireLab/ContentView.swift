@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+/// In this screen the user can proceed to the first details page where they can enter their details for the app to calculate their retirement options
 struct ContentView: View {
     @EnvironmentObject var inputs: FireInputs
     

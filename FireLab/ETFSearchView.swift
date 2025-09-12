@@ -6,7 +6,8 @@
 //
 
 import SwiftUI
-
+/** This page allows users to search for an existing ETF from the database by displaying the ETF names in a searchable list. Tapping on any ETF automatically selects it and redirects the user to the AddInvestmentView page.
+ */
 struct ETFSearchView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var inputs: FireInputs
@@ -14,8 +15,9 @@ struct ETFSearchView: View {
     @State private var fileContent: String = "Loading..."
     @State private var query = ""
     
-
+    
     @State var all = ["VDHG", "VS&P500", "NZAM Nasdaq 100", "ETF"]
+    /// This is a computed variable storing all ETF names to be displayed, that were either filtered from a user's query, or stores all ETF's when no query has been made.
     var filtered: [String] {
         guard !query.isEmpty else { return all }
         return all.filter {
@@ -49,6 +51,7 @@ struct ETFSearchView: View {
             loadFileContent()
         }
     }
+    /// This function reads a plaintext file line-by-line and stores it in the "all" state variable.
     private func loadFileContent() {
             if let fileURL = Bundle.main.url(forResource: "ETF List", withExtension: "txt") {
                 do {

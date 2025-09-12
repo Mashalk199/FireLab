@@ -93,6 +93,7 @@ struct FireLogo: View {
             FireEmblem(size: emblemSize)
             Text(title)
                 .font(.system(size: 26, weight: .black))
+                // Here we adhere to HIG by using system default colors so that system dark mode management is possible
                 .foregroundStyle(.orange)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)

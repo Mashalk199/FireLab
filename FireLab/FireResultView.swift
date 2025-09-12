@@ -8,7 +8,7 @@
 import SwiftUI
 import Foundation
 
-
+/// This object stores the data that is to be either displayed in this screen or sent to the FireGraphsView page.
 final class RetirementData: ObservableObject {
     @Published var brokerageGrowthData: [Double] = []
     @Published var retirementData: Result = Result(
@@ -22,6 +22,7 @@ final class RetirementData: ObservableObject {
     )
 
 }
+/// This struct stores only the data that is to be displayed in the current page to the user
 struct Result {
         let workingDays: Int
         let retirementDate: Date
@@ -32,6 +33,7 @@ struct Result {
         let superBalanceAtRetirement: Double
     }
 
+/** This page displays the results of the retirement calculation performed by the app. It displays the date the user will retire, the value the superannuation and brokerage fund will be at retirement, as well as the monthly contribution that is necessary for both super and brokerage in order to achieve that goal. */
 struct FireResultView: View {
     @EnvironmentObject var inputs: FireInputs
     @ObservedObject var retirementData: RetirementData
@@ -121,22 +123,59 @@ struct FireResultView: View {
             }
         }
     }
-    // Annual return compounded daily
-    func getAnnualReturn(_ percentage: Double,_ annual_inflation: Double) -> Double {
+    /** Converts annual return to the amount compounded daily.
+     - Logic: Since compounding x times requires you to multiply by a return factor to the power of x, we can do the inverse to get the value compounding at a more regular interval.
+     - Parameters:
+            - percentage: The factor by which the investment amount will grow by when its growth is compounded, in this case every year, as a double value.
+            - annual_inflation: The inflation factor for each year, as a double value.
+     - Returns:
+            - The factor by which the investment grows by on a daily basis, taking into account inflation.
+     */
+    func getDailyReturn(_ percentage: Double,_ annual_inflation: Double) -> Double {
         return pow(((1.0 + percentage) / (1.0 + annual_inflation)), (1.0/365.0))
     }
+    /** Returns the proportions of the FI contribution to be allocated for brokerage and for super, based on the brokerage proportion provided. Given a specific brokerage proportion, the rest of the proportion will be allocated to super, by subtracting 1.
+     - Parameters:
+            - proportion: The brokerage proportion of the FI contribution
+     - Returns:
+            - A tuple where the first value is the proportion allocated for brokerage, and the super proportion as the second value.
+     */
     func getProps(_ proportion: Double) -> (Double, Double) {
         return (proportion, 1.0 - proportion)
     }
+    /**
+     Returns the number of days in between 2 specific dates
+     - Parameters:
+            - startDate: A swift date object representing the first date in the interval you want to calculate the days between.
+            - endDate: a swift date object representing the last date in the interval
+     - Returns:
+            - The number of days passing between the start and end dates provided.
+     */
     func daysBetween(_ startDate: Date,_ endDate: Date) -> Int {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: startDate, to: endDate)
         return components.day ?? 0
     }
+    /**
+     Converts and returns the numerical value inside the string variable storing the user's input, in a double format.
+     - Parameters:
+            - string: A string that likely is provided by the FireInputs environment object, containing the user's input for a particular piece of numerical data.
+     - Returns:
+            - The numerical value inside the string, after the string is trimmed from whitespace, as a double.
+     */
     func getDouble(_ string: String) -> Double {
         return Double(string.trimmingCharacters(in: .whitespaces))
-        ?? 2000 // Fallback value
+        ?? 2000 // Fallback value that causes extreme calculations, making debugging clearer
     }
+    /**
+     Uses all data gathered from user and calculates the proportion of the user's monthly FI contribution to allocate to brokerage funds, and the proportion to allocate to super funds, as well as the earliest possible time the user can retire by if they follow the plan.
+     
+     - Parameters:
+            - FireInputs object with all fields filled by the user.
+            - A RetirementData observable object that is accessible from the FireGraphsView screen. This object needs just a basic initialisation so that this method can fill in its details.
+     - Returns:
+            - A Result object that contains all data filled out by this function for it to be displayed in this FireResultView screen.
+     */
     func calculateRetirement() -> Result {
         var daily_expenses: Double = getDouble(inputs.expensesText)
         daily_expenses /= 365
@@ -153,7 +192,7 @@ struct FireResultView: View {
         var totalRetiredSuperDays: Int = 0
         let annual_inflation: Double = getDouble(inputs.inflationRateText) / 100.0
         let superAnnual     = getDouble(inputs.superGrowthRateText) / 100.0
-        let superGrowthRate = getAnnualReturn(superAnnual, annual_inflation)
+        let superGrowthRate = getDailyReturn(superAnnual, annual_inflation)
         let ETFList = inputs.items
         
         let days_during_super = 7 * 365
@@ -222,7 +261,7 @@ struct FireResultView: View {
                 for j in 0..<ETFList.count {
                     allocation_tmp = getDouble(ETFList[j].allocationPercent)
                     brokerListGrowth[j] += brokerCont * (allocation_tmp / 100.0)
-                    brokerListGrowth[j] *= getAnnualReturn(
+                    brokerListGrowth[j] *= getDailyReturn(
                         getDouble(ETFList[j].expectedReturn) / 100.0,
                         annual_inflation)
                 }
@@ -239,11 +278,11 @@ struct FireResultView: View {
                 retiredSuperDays_tmp = 0
                 
                 portfolioList = brokerListGrowth
-                // .reduce(0, +) gets the total sum of the array
                 /* Here we reduce the current value of the brokerage investment to basically zero, to
                  see whether the user can retire on it until the age of 60 or not. If the user reaches 60
                  without retiring, the retiredBroker flag remains false, and the brokerage investment
                  will continue to grow via more working days. */
+                // .reduce(0, +) gets the total sum of the array
                 while portfolioList.reduce(0, +) >= daily_expenses &&
                         !retiredBroker &&
                         (workingDays + retiredDays_tmp < days_to_60) {
@@ -251,7 +290,7 @@ struct FireResultView: View {
                         allocation_tmp = getDouble(ETFList[j].allocationPercent)
                         portfolioList[j] -= daily_expenses * (allocation_tmp / 100.0)
                         return_tmp = getDouble(ETFList[j].expectedReturn) / 100.0
-                        portfolioList[j] *= getAnnualReturn(return_tmp, annual_inflation)
+                        portfolioList[j] *= getDailyReturn(return_tmp, annual_inflation)
 
                     }
                     retiredDays_tmp += 1
@@ -294,7 +333,7 @@ struct FireResultView: View {
                     allocation_tmp = getDouble(ETFList[j].allocationPercent)
                     portfolioList[j] -= daily_expenses * (allocation_tmp / 100.0)
                     return_tmp = getDouble(ETFList[j].expectedReturn)
-                    portfolioList[j] *= getAnnualReturn(return_tmp / 100.0, annual_inflation)
+                    portfolioList[j] *= getDailyReturn(return_tmp / 100.0, annual_inflation)
                 }
                 totalRetiredDays += 1
             }
@@ -366,7 +405,7 @@ struct FireResultView: View {
                 allocation_tmp = getDouble(ETFList[j].allocationPercent)
                 portfolioList[j] -= daily_expenses * (allocation_tmp / 100.0)
                 return_tmp = getDouble(ETFList[j].expectedReturn) / 100.0
-                portfolioList[j] *= getAnnualReturn(return_tmp, annual_inflation)
+                portfolioList[j] *= getDailyReturn(return_tmp, annual_inflation)
 
             }
             brokerageUsage.append(portfolioList.reduce(0, +))

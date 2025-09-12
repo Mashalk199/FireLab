@@ -7,7 +7,7 @@
 
 import SwiftUI
 import UIKit
-
+/** In this screen, the user is able to input all of their investment preferences and details. They can specify the investment diversity they will want their portfolio to follow, how much they want to allocate to certain investments with certain growth rates. */
 struct InvestmentView: View {
     @EnvironmentObject var inputs: FireInputs
     @State private var goNext = false
@@ -31,17 +31,18 @@ struct InvestmentView: View {
         errorText = nil
         return true
     }
+    /// This computed property computes the total percentage allocated by the user across all investments displayed.
     var totalPercent: Double {
         inputs.items
             .map { Double($0.allocationPercent.trimmingCharacters(in: .whitespaces)) ?? 0 }
             .reduce(0, +)
     }
 
-    //AddInvestment - it is equal to 100%
+    /// Computed property that checks whether the list of investments is not empty and that the total allocated percentages add up to near 100%.
     var canCalculate: Bool {
         !inputs.items.isEmpty && abs(totalPercent - 100) < 0.01
     }
-    // Autocomplete all unfilled allocations with an equal allocation
+    /// Autocompletes all unfilled allocations with an equal allocation.
     func autocompleteAllocations() {
         guard !inputs.items.isEmpty else { return }
         let filledTotal = inputs.items
@@ -196,13 +197,6 @@ struct InvestmentView: View {
                 errorFocused = true
             }
         }
-    }
-    
-    private func binding(for item: InvestmentItem) -> Binding<InvestmentItem> {
-        guard let idx = inputs.items.firstIndex(of: item) else {
-            return .constant(item)
-        }
-        return $inputs.items[idx]
     }
 }
 

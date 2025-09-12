@@ -7,11 +7,15 @@
 
 import SwiftUI
 import UIKit
-
+/// This object is used to pass information from the ETFSearchView screen about the selected ETF to this AddInvestmentView screen
 class SelectedETF: ObservableObject {
     @Published var selectedETF: String?
 }
 
+/** This screen allows users to add an investment of ETF or bond type to their portfolio that they want to invest into. Users can either select an ETF from the provided list or create their own bond that they are investing in.
+ 
+    There is also an additional option for users to toggle a feature where the app calculates the expected yearly return for them using machine learning.
+ */
 struct AddInvestmentView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var inputs: FireInputs
@@ -25,6 +29,7 @@ struct AddInvestmentView: View {
     @State private var errorText: String?
     @AccessibilityFocusState private var errorFocused: Bool
 
+    /// Function to validate user input, ensuring an ETF is selected or that a bond name is set
     func validate() -> Bool {
         if tab == 0 {
             guard let _ = currETF.selectedETF
@@ -176,7 +181,7 @@ struct AddInvestmentView: View {
         
     }
 }
-
+/// This is a component that has a label and a field for the user to input numerical data
 struct FieldRow: View {
     var label: String
     @Binding var text: String
@@ -201,6 +206,7 @@ struct FieldRow: View {
     }
 }
 
+/// This is a cancel navigation button
 struct RoundedBorderButton: View {
     var title: String
     var action: () -> Void
@@ -217,7 +223,7 @@ struct RoundedBorderButton: View {
         }
     }
 }
-
+/// This is a filled in "add" navigation button
 struct RoundedFillButton: View {
     var title: String
     var action: () -> Void

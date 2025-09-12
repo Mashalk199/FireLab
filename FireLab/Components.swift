@@ -7,16 +7,16 @@
 
 import Foundation
 import SwiftUI
-// This file is where all the common components in the app will be retrieved from
+/// This file is where all the common components in the app will be retrieved from.
 struct Logo : View {
     var body: some View {
         Text("FireLab")
             .font(.system(size: 36, weight: .black))
             .fontWeight(.black)
-        // Here we adhere to HIG by using system default colors so that system dark mode management is possible
             .foregroundColor(.orange)
     }
 }
+/// This button is displayed on the first page, letting users decide which type of calculation they want to try.
 struct BigButton : View {
     var text: String
     var hint: String
@@ -34,6 +34,7 @@ struct BigButton : View {
     }
 }
 
+/// This input field is a component to be used all throughout the program to retrieve any data, numeric or textual.
 struct InputField : View {
     var label: String
     @Binding var fieldVar: String
@@ -79,7 +80,7 @@ struct InputField : View {
     }
 }
 
-// This medium button is used on screen 2, the AddDetailsHub
+/// This medium button is used on screen 2, the AddDetailsHub. Giving users different options for different features they can use.
 struct MediumButton<Destination: View>: View {
     var text: String
     var hint: String
@@ -112,7 +113,7 @@ struct MediumButton<Destination: View>: View {
         .accessibilityHint(hint)
     }
 }
-// Global small navigation/add button
+/// Global small navigation/add button. This cannot help perform user input validation.
 struct SmallNavButton<Destination: View>: View {
     var text: String
     var fontSize: Int = 20
@@ -143,6 +144,9 @@ struct SmallNavButton<Destination: View>: View {
         .accessibilityHint(hint)
     }
 }
+/** This is simply a view of the small button component, abstracted away into a separate view.
+    It is possible to use this as a view for an actual button that can perform navigation and input validation.
+ */
 struct SmallButtonView: View {
     var text: String
     var fontSize: Int = 20
@@ -181,6 +185,7 @@ struct SmallButtonView: View {
             )
     }
 }
+/** This displays a popover for the user to see additional information about context for details they need to provide. */
 struct HelpPopover: View {
     let message: String
     
@@ -211,6 +216,8 @@ struct HelpPopover: View {
         .presentationCompactAdaptation(.none) 
     }
 }
+
+/// Implements a basic date input field.
 struct DateField : View {
     var text: String
     var DOB: Binding<Date>
@@ -228,6 +235,9 @@ struct DateField : View {
     }
 }
 
+/** This is used in the InvestmentView screen which displays all user-selected investments in a format of a list
+ of cards, and each card has a small field inside that lets the user type in a percentage allocation they want to set for
+ a particular investment. */
 struct InvestmentAllocationCard : View {
     @Binding var item: InvestmentItem
     @Binding var itemList: [InvestmentItem]
