@@ -8,9 +8,11 @@ The app will ask the user in the beginning to provide details of their current s
 
 The calculation works by figuring out the minimum amount the user needs to grow their brokerage and super investments to, in order for the brokerage fund to last them until the age of 60 and the super fund to last them from the ages of 60 to 67. It will also give them the time it will occur based on their FI contribution.
 
-Some assumptions are made:
-- The user will retire no matter what at 67 years of age. Regardless of their expenses or assets. Once they recieve the pension, they are considered retired, and are not able to work.
+Some assumptions are made for our *limited* financial forecaster:
+- The user will retire no matter what at 67 years of age. Regardless of their expenses or assets. Once they recieve the pension, they are considered retired, and do not have to work.
 - The user will take tax into account when providing their own yearly return percentage.
+- The user never wants to default on any of their loans.
+- The user provide details such that they can pay off their debt before they reach 67. As this is not a completely comprehensive financial planner, if the user wants to ensure they pay off their debts, they will have to set higher minimum monthly payments for their debts.
 
 ## Topics
 

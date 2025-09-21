@@ -8,7 +8,7 @@
 import SwiftUI
 import Foundation
 
-/// This object stores the data that is to be either displayed in this screen or sent to the FireGraphsView page.
+/// This object stores the data that is to be either displayed in the FireResultView screen or sent to the FireGraphsView page.
 final class RetirementData: ObservableObject {
     @Published var brokerageGrowthData: [Double] = []
     @Published var retirementData: Result = Result(
@@ -22,7 +22,7 @@ final class RetirementData: ObservableObject {
     )
 
 }
-/// This struct stores only the data that is to be displayed in the current page to the user
+/// This struct stores only the data that is to be displayed in the FireResultView page to the user
 struct Result {
         let workingDays: Int
         let retirementDate: Date
