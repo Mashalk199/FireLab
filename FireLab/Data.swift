@@ -23,6 +23,9 @@ class FireInputs: ObservableObject {
     @Published var FIContributionText: String = ""
     @Published var inflationRateText: String = ""
     @Published var superGrowthRateText: String = ""
+    @Published var outstandingMortgageText: String = ""
+    @Published var mortgageYearlyInterestText: String = ""
+    @Published var monthlyRentText: String = ""
     @Published var items: [InvestmentItem] = []
 
 }
