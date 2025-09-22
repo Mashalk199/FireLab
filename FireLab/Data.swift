@@ -25,7 +25,7 @@ class FireInputs: ObservableObject {
     @Published var superGrowthRateText: String = ""
     @Published var outstandingMortgageText: String = ""
     @Published var mortgageYearlyInterestText: String = ""
-    @Published var monthlyRentText: String = ""
+    @Published var weeklyRentText: String = ""
     @Published var mortgageMinimumPaymentText: String = ""
     @Published var housingDetailsSet: HousingDetailsSet = .unset
     @Published var items: [InvestmentItem] = []
