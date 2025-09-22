@@ -18,7 +18,7 @@ struct AddDetailsHub: View {
     @AccessibilityFocusState private var errorFocused: Bool
 
     /// Function to validate all user inputs
-    func validate() -> Bool {
+    private func validate() -> Bool {
             let cal = Calendar.current
             guard let latest_date_years = cal.date(byAdding: .year, value: -14, to: Date()), inputs.dateOfBirth < latest_date_years else {
                 errorText = "You must be at least 14 years and 9 months old to be able to work!"; return false

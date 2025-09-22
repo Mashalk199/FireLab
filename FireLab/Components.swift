@@ -150,13 +150,13 @@ struct SmallNavButton<Destination: View>: View {
 struct SmallButtonView: View {
     var text: String
     var fontSize: Int = 20
-    var icon: String
+    var icon: String?
     var width: Int
     var fgColor: Color
     var bgColor: Color
     var border: Color
 
-
+    
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 40)
@@ -170,11 +170,13 @@ struct SmallButtonView: View {
                     .padding(.leading, 7)
                     .multilineTextAlignment(.center)
                 Spacer()
-                Image(systemName: icon)
+                if icon != nil {
+                    Image(systemName: icon ?? "arrow.right.circle")
+                        .foregroundColor(fgColor)
+                        .padding(.trailing, 7)
+                        .font(.system(size: 40))
+                }
                 
-                    .foregroundColor(fgColor)
-                    .padding(.trailing, 7)
-                    .font(.system(size: 40))
             }
         }
         .frame(width: CGFloat(width), height: 66)
