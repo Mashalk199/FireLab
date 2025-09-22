@@ -27,11 +27,11 @@ struct PortfolioDetails: View {
                 .font(.title).bold()
                 .padding(.bottom, 8)
             
-            if inputs.items.isEmpty {
+            if inputs.investmentItems.isEmpty {
                 Text("Calculations for portfolios are coming out soon...")
                     .foregroundStyle(.secondary)
             } else {
-                List(inputs.items) { it in
+                List(inputs.investmentItems) { it in
                     HStack {
                         Text(it.name)
                         Spacer()
@@ -49,7 +49,7 @@ struct PortfolioDetails: View {
 
 #Preview("Portfolio") {
     let inputs = FireInputs()
-    inputs.items = [
+    inputs.investmentItems = [
         InvestmentItem(name: "VDHG", type: .etf, allocationPercent: "60"),
         InvestmentItem(name: "AusGov Bonds", type: .bond, allocationPercent: "40")
     ]

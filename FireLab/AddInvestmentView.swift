@@ -151,7 +151,7 @@ struct AddInvestmentView: View {
                         ? (currETF.selectedETF ?? "ETF")
                         : (name.isEmpty ? "Bond #1" : name)
                         
-                        inputs.items.append(
+                        inputs.investmentItems.append(
                             InvestmentItem(
                                 name: displayName,
                                 type: tab == 0 ? .etf : .bond,
@@ -160,7 +160,7 @@ struct AddInvestmentView: View {
                             )
                         )
                         currETF.selectedETF = nil
-                        print(inputs.items)
+                        print(inputs.investmentItems)
                         
                         dismiss()
                     }

@@ -264,7 +264,6 @@ struct InvestmentAllocationCard : View {
                 .accessibilityHint("Removes this investment from the list")
             }
             .overlay(
-                ZStack {
                     VStack {
                         Text(item.name)
                             .font(.system(size: 20, weight: .black))
@@ -317,7 +316,7 @@ struct InvestmentAllocationCard : View {
                     // Logically groups these views of text and textfields for accessibility
                     .accessibilityElement(children: .contain)
                     .accessibilityLabel(Text("\(item.name), Allocation"))
-                }
+                
             )
     }
 }

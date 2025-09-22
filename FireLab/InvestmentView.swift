@@ -21,7 +21,7 @@ struct InvestmentView: View {
             return false
         }
         // Ensures there are no empty boxes for allocation percentages
-        for item in inputs.items {
+        for item in inputs.investmentItems {
             if let _ = Double(item.allocationPercent.trimmingCharacters(in: .whitespaces)) {
                 continue
             }
@@ -33,25 +33,25 @@ struct InvestmentView: View {
     }
     /// This computed property computes the total percentage allocated by the user across all investments displayed.
     var totalPercent: Double {
-        inputs.items
+        inputs.investmentItems
             .map { Double($0.allocationPercent.trimmingCharacters(in: .whitespaces)) ?? 0 }
             .reduce(0, +)
     }
 
     /// Computed property that checks whether the list of investments is not empty and that the total allocated percentages add up to near 100%.
     var canCalculate: Bool {
-        !inputs.items.isEmpty && abs(totalPercent - 100) < 0.01
+        !inputs.investmentItems.isEmpty && abs(totalPercent - 100) < 0.01
     }
     /// Autocompletes all unfilled allocations with an equal allocation.
     func autocompleteAllocations() {
-        guard !inputs.items.isEmpty else { return }
-        let filledTotal = inputs.items
+        guard !inputs.investmentItems.isEmpty else { return }
+        let filledTotal = inputs.investmentItems
                 .compactMap { Double($0.allocationPercent.trimmingCharacters(in: .whitespaces)) }
                 .reduce(0, +)
 
         // Filter indices for all investment items which don't have an allocation entered
-        let emptyIdxs = inputs.items.indices.filter {
-            inputs.items[$0].allocationPercent.trimmingCharacters(in: .whitespaces).isEmpty
+        let emptyIdxs = inputs.investmentItems.indices.filter {
+            inputs.investmentItems[$0].allocationPercent.trimmingCharacters(in: .whitespaces).isEmpty
         }
 
         // If nothing to fill or no room left, exit
@@ -66,12 +66,12 @@ struct InvestmentView: View {
         for (pos, idx) in emptyIdxs.enumerated() {
             if pos < emptyIdxs.count - 1 {
                 let v = (even * 10).rounded() / 10
-                inputs.items[idx].allocationPercent = String(format: "%.1f", v)
+                inputs.investmentItems[idx].allocationPercent = String(format: "%.1f", v)
                 allocated += v
             } else {
                 let last = max(0, remaining - allocated)
                 let roundedLast = (last * 10).rounded() / 10
-                inputs.items[idx].allocationPercent = String(format: "%.1f", roundedLast)
+                inputs.investmentItems[idx].allocationPercent = String(format: "%.1f", roundedLast)
             }
         }
     }
@@ -125,11 +125,11 @@ struct InvestmentView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.horizontal)
                 VStack(spacing: 20) {
-                    ForEach($inputs.items) { $item in
-                        InvestmentAllocationCard(item: $item, itemList: $inputs.items)
+                    ForEach($inputs.investmentItems) { $item in
+                        InvestmentAllocationCard(item: $item, itemList: $inputs.investmentItems)
                     }
                     
-                    if inputs.items.isEmpty {
+                    if inputs.investmentItems.isEmpty {
                         Text("No investments yet").foregroundStyle(.secondary)
                             .padding(.top, 20)
                     }
@@ -202,7 +202,7 @@ struct InvestmentView: View {
 
 #Preview {
     let inputs = FireInputs()
-    inputs.items = [
+    inputs.investmentItems = [
         InvestmentItem(name: "VDHG", type: .etf),
         InvestmentItem(name: "AusGov Bonds", type: .bond),
         InvestmentItem(name: "DB Crude Oil Long Exchange Traded Fund", type: .bond),

@@ -28,7 +28,8 @@ class FireInputs: ObservableObject {
     @Published var weeklyRentText: String = ""
     @Published var mortgageMinimumPaymentText: String = ""
     @Published var housingDetailsSet: HousingDetailsSet = .unset
-    @Published var items: [InvestmentItem] = []
+    @Published var investmentItems: [InvestmentItem] = []
+    @Published var loanItems: [LoanItem] = []
 
 }
 enum InvestmentType: String, Codable { case etf, bond }
@@ -44,3 +45,12 @@ struct InvestmentItem: Identifiable, Hashable, Codable {
            case name, type, allocationPercent, expectedReturn
        }
 }
+
+struct LoanItem: Identifiable {
+    let id = UUID()
+    var name: String
+    var outstandingBalance: String
+    var interestRate: String
+    var minimumPayment: String
+}
+            

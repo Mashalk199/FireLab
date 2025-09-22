@@ -94,6 +94,7 @@ struct FireResultView: View {
                             Text("Recommended Monthly Contribution To Super: $\(String(format: "%.0f", r.monthlySuperContribution))")
                                 .accessibilityLabel("Recommended Monthly Contribution To Super: $\(r.monthlySuperContribution, format: .currency(code: "AUD"))")
                         }
+                        .frame(width: 350)
 
                         Spacer()
 
@@ -193,7 +194,7 @@ struct FireResultView: View {
         let annual_inflation: Double = getDouble(inputs.inflationRateText) / 100.0
         let superAnnual     = getDouble(inputs.superGrowthRateText) / 100.0
         let superGrowthRate = getDailyReturn(superAnnual, annual_inflation)
-        let ETFList = inputs.items
+        let ETFList = inputs.investmentItems
         
         let days_during_super = 7 * 365
         guard let d60 = Calendar.current.date(byAdding: .year, value: 60, to: inputs.dateOfBirth),
