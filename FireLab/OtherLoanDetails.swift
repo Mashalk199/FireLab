@@ -14,8 +14,8 @@ struct OtherLoanDetails: View {
     var body: some View {
         FireLogo()
             .padding(.bottom, 20)
-        Text("Loans")
-            .font(.headline)
+        /*Text("Loans")
+            .font(.headline)*/
         ScrollView {
             VStack(spacing: 20) {
                 ForEach($inputs.loanItems) { $item in
