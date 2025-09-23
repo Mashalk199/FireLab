@@ -9,15 +9,19 @@ import SwiftUI
 
 struct OtherLoanDetails: View {
     @EnvironmentObject var inputs: FireInputs
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
         FireLogo()
             .padding(.bottom, 20)
+        Text("Loans")
+            .font(.headline)
         ScrollView {
             VStack(spacing: 20) {
                 ForEach($inputs.loanItems) { $item in
                     RoundedRectangle(cornerRadius: 20)
                         .fill(Color(.lightGray))
-                        .frame(width: 300, height: 200)
+                        .frame(width: 330, height: 200)
                         .overlay(alignment: .topTrailing) {
                             // Add .destructive annotation as per accessibility HIG
                             Button(role: .destructive) {
@@ -48,6 +52,11 @@ struct OtherLoanDetails: View {
                                 } else {
                                     Text("Outstanding balance: \(item.outstandingBalance)")
                                 }
+                                if let payment = Double(item.minimumPayment) {
+                                    Text("Minimum monthly payment: \(payment.formatted(.currency(code: "AUD")))")
+                                } else {
+                                    Text("Minimum monthly payment: \(item.minimumPayment)")
+                                }
                                 Text("Growth rate: \(item.interestRate)%")
                                 Spacer()
                             }
@@ -56,14 +65,38 @@ struct OtherLoanDetails: View {
             }
             Spacer()
         }
+        
+        HStack(spacing: 14) {
+            SmallNavButton(text: "Add Loan",
+                        icon: "plus.circle",
+                        width: 160,
+                        fgColor: .white,
+                        bgColor: .orange,
+                        border: .orange,
+                        hint: "Add a loan to your list") {
+                AddLoanView()
+            }
+            
+            Button {
+                dismiss()
+            } label: {
+                SmallButtonView(text: "Done",
+                                icon: "arrow.left.circle",
+                                width: 140,
+                                fgColor: .orange,
+                                bgColor: .white,
+                                border: .black,)
+            }
+            
+        }
     }
 }
 
 #Preview {
     let inputs = FireInputs()
     inputs.loanItems = [
-        LoanItem(name: "Help Loan", outstandingBalance: "40000", interestRate: "3.5", minimumPayment: "400"),
-        LoanItem(name: "Car Loan", outstandingBalance: "100000", interestRate: "5.5", minimumPayment: "1000"),
+        LoanItem(name: "HELP Loan", outstandingBalance: "40000", interestRate: "3.5", minimumPayment: "400"),
+        LoanItem(name: "Car Loan", outstandingBalance: "100000", interestRate: "5.5", minimumPayment: "10000"),
     ]
     return NavigationStack {
         OtherLoanDetails()

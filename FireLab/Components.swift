@@ -40,6 +40,7 @@ struct InputField : View {
     @Binding var fieldVar: String
     var placeholder: String
     var helpText: String?
+    var fieldWidth: Int?
     
     let formatter: NumberFormatter = {
             let formatter = NumberFormatter()
@@ -65,7 +66,7 @@ struct InputField : View {
             TextField(placeholder,
                       text: $fieldVar)
             .keyboardType(.decimalPad)
-            .frame(width: 150, height: 35)
+            .frame(width: CGFloat(fieldWidth ?? 150), height: 35)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(.gray.opacity(0.5))
@@ -123,6 +124,8 @@ struct SmallNavButton<Destination: View>: View {
     var bgColor: Color
     var border: Color
     var hint: String
+    var height: Int? = nil
+
     @ViewBuilder var destination: () -> Destination
     
     var body: some View {
@@ -136,6 +139,7 @@ struct SmallNavButton<Destination: View>: View {
                          fgColor: fgColor,
                          bgColor: bgColor,
                          border: border,
+                         height: height,
                          )
         }
         .padding(.vertical, 15)
@@ -155,6 +159,7 @@ struct SmallButtonView: View {
     var fgColor: Color
     var bgColor: Color
     var border: Color
+    var height: Int?
 
     
     var body: some View {
@@ -179,7 +184,7 @@ struct SmallButtonView: View {
                 
             }
         }
-        .frame(width: CGFloat(width), height: 66)
+        .frame(width: CGFloat(width), height: CGFloat(height ?? 66))
         .background(
             RoundedRectangle(
                 cornerRadius: 40)
@@ -318,5 +323,27 @@ struct InvestmentAllocationCard : View {
                     .accessibilityLabel(Text("\(item.name), Allocation"))
                 
             )
+    }
+}
+#Preview("SmallNavButton Example") {
+    NavigationStack {
+        VStack {
+            SmallNavButton(
+                text: "Go to Details",
+                fontSize: 18,
+                icon: "arrow.right.circle",
+                width: 200,
+                fgColor: .white,
+                bgColor: .blue,
+                border: .blue,
+                hint: "Navigates to the details screen",
+//                height: 50
+            ) {
+                Text("This is the destination view")
+                    .font(.title)
+                    .padding()
+            }
+        }
+        .padding()
     }
 }

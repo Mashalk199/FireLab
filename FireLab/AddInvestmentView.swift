@@ -90,16 +90,21 @@ struct AddInvestmentView: View {
             
             if tab == 0 {
                 VStack(spacing: 12) {
-                    HStack {
-                        Text("Select ETF")
-                            .frame(width: 200, alignment: .leading)
-                        
-                        NavigationLink("Choose →") {
-                            ETFSearchView(currETF: currETF)
-                        }
-                        .frame(width: 150, alignment: .trailing)
+                    SmallNavButton(text: "Select ETF",
+                                fontSize: 18,
+                                icon: "arrow.right.circle",
+                                width: 180,
+                                fgColor: .orange,
+                                bgColor: .white,
+                                border: .black,
+                                hint: "Add an investment to your list",
+                                height: 60,
+                    ) {
+                        ETFSearchView(currETF: currETF)
                     }
-                    .frame(width: 350)
+                    .padding([.top, .bottom], 20)
+                            
+                    
                     
                     FieldRow(
                         label: "Expected Yearly After-Tax Return",
