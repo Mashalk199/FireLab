@@ -18,7 +18,8 @@ struct AddLoanView: View {
                 label: "Loan Name",
                 fieldVar: $loanName,
                 placeholder: "",
-            fieldWidth: 200)
+                fieldWidth: 200,
+            )
         Spacer()
     }
 }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct OtherLoanDetails: View {
+struct LoanDetails: View {
     @EnvironmentObject var inputs: FireInputs
     @Environment(\.dismiss) private var dismiss
 
@@ -99,7 +99,7 @@ struct OtherLoanDetails: View {
         LoanItem(name: "Car Loan", outstandingBalance: "100000", interestRate: "5.5", minimumPayment: "10000"),
     ]
     return NavigationStack {
-        OtherLoanDetails()
+        LoanDetails()
     }
         .environmentObject(inputs)
 }

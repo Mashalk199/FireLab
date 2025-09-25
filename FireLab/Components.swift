@@ -54,8 +54,8 @@ struct InputField : View {
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .layoutPriority(1)
-                .padding(.trailing, 22)
-                .frame(width:200, alignment: .leading)
+            
+                .frame(width: CGFloat(350 - (fieldWidth ?? 150)), alignment: .leading)
                 .overlay(alignment: .trailing) {
                             if let message = helpText {
                                 HelpPopover(message: message)
@@ -63,6 +63,9 @@ struct InputField : View {
                                     .foregroundColor(.orange)
                             }
                         }
+                .padding([.leading], 22)
+
+            Spacer()
             TextField(placeholder,
                       text: $fieldVar)
             .keyboardType(.decimalPad)
@@ -71,6 +74,7 @@ struct InputField : View {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(.gray.opacity(0.5))
             )
+            .padding(.trailing, 22)
         }
         .padding(.vertical, 5)
         // We will also add accessibility labels
@@ -325,7 +329,8 @@ struct InvestmentAllocationCard : View {
             )
     }
 }
-#Preview("SmallNavButton Example") {
+#Preview("Component Examples") {
+    @Previewable @State var textField: String = ""
     NavigationStack {
         VStack {
             SmallNavButton(
@@ -343,6 +348,12 @@ struct InvestmentAllocationCard : View {
                     .font(.title)
                     .padding()
             }
+            InputField(
+                label: "Loan Name",
+                fieldVar: $textField,
+                placeholder: "",
+                fieldWidth: 200,
+            )
         }
         .padding()
     }
