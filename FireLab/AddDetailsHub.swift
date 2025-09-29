@@ -98,7 +98,7 @@ struct AddDetailsHub: View {
             
             MediumButton(text: "Other Loans",
                          hint: "Opens other loans details page") {
-                OtherLoanDetails()
+                LoanDetails()
             }
             
             MediumButton(text: "Investment Portfolio",

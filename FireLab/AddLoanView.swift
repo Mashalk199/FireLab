@@ -11,116 +11,139 @@ import SwiftUI
 struct AddLoanView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var inputs: FireInputs
-    
-    @State private var loanName: String = ""
-    @State private var outstandingBalance: String = ""
-    @State private var interestRate: String = ""
-    @State private var minimumPayment: String = ""
-    
+
+    @State var loanName: String = ""
+    @State var outstandingBalance: String = ""
+    @State var yearlyInterest: String = ""
+    @State var minimumPayment: String = ""
     @State private var errorText: String?
+
     @AccessibilityFocusState private var errorFocused: Bool
     
-    //Validates user inputs before creating a loan object.
+    /// Function to validate all user inputs
     private func validate() -> Bool {
-        guard !loanName.trimmingCharacters(in: .whitespaces).isEmpty else {
-            errorText = "Please enter loan name"; return false
+            
+        if loanName.isEmpty {
+            errorText = "Enter a loan name"
+            return false
         }
-        guard let balance = Double(outstandingBalance), balance > 0 else {
-            errorText = "Outstanding balance must be > 0"; return false
+        
+            
+        guard let outstandingBalanceField = Double(outstandingBalance), outstandingBalanceField > 0
+        else {
+            errorText = "Enter outstanding balance > 100";
+            return false
         }
-        guard let rate = Double(interestRate), rate >= 0, rate <= 100 else {
-            errorText = "Interest rate must be between 0 and 100"; return false
-        }
-        guard let minPay = Double(minimumPayment), minPay > 0 else {
-            errorText = "Minimum monthly payment must be > 0"; return false
+            
+        guard let yearlyInterestField = Double(yearlyInterest), yearlyInterestField >= 0, yearlyInterestField <= 100
+        else {
+            errorText = "Enter 100 >= yearly loan interest rate >= 0";
+            return false }
+        
+        guard let minimumPaymentField = Double(minimumPayment), minimumPaymentField > 0
+        else {
+            errorText = "Enter minimum monthly payment > 0";
+            return false
         }
         errorText = nil
         return true
     }
-    
+
     var body: some View {
+            FireLogo()
+                .padding([.bottom], 20)
+        if let msg = errorText {
+            Text(msg)
+                .foregroundStyle(.red)
+                .font(.footnote)
+                .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 400, alignment: .center)
+                .padding(.horizontal)
+            
+                // Accessibility: mark and focus the error
+                .accessibilityLabel("Error: \(msg)")
+                .accessibilityHint("Fix the fields below, then try again.")
+                // read before other content
+                .accessibilitySortPriority(1000)
+                .accessibilityAddTraits(.isStaticText)
+            
+                .accessibilityFocused($errorFocused)
+            }
         VStack {
-            FireLogo().padding(.bottom, 20)
-            
-            //Show error text if validation fails
-            if let msg = errorText {
-                Text(msg)
-                    .foregroundStyle(.red)
-                    .font(.footnote)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                    .accessibilityLabel("Error: \(msg)")
-                    .accessibilityHint("Fix the fields below, then try again.")
-                    .accessibilitySortPriority(1000)
-                    .accessibilityFocused($errorFocused)
-            }
-            
-            VStack(spacing: 14) {
-                InputField(label: "Loan Name",
-                           fieldVar: $loanName,
-                           placeholder: "Loan #1")
-                
-                InputField(label: "Outstanding Balance",
-                           fieldVar: $outstandingBalance,
-                           placeholder: "$")
-                
-                InputField(label: "Interest Rate (Yearly)",
-                           fieldVar: $interestRate,
-                           placeholder: "%")
-                
-                InputField(label: "Minimum Monthly Payment",
-                           fieldVar: $minimumPayment,
-                           placeholder: "$")
-            }
-            .padding(.top, 10)
-            
+            InputField(
+                label: "Loan Name",
+                fieldVar: $loanName,
+                placeholder: "Name",
+            )
+            InputField(
+                label: "Outstanding loan balance",
+                fieldVar: $outstandingBalance,
+                placeholder: "$",
+            )
+            InputField(
+                label: "Yearly interest rate",
+                fieldVar: $yearlyInterest,
+                placeholder: "%",
+            )
+            InputField(
+                label: "Minimum monthly payment",
+                fieldVar: $minimumPayment,
+                placeholder: "$",
+            )
             Spacer()
-            
             HStack(spacing: 14) {
                 Button {
                     dismiss()
                 } label: {
-                    SmallButtonView(
-                        text: "Cancel",
-                        icon: "arrow.left.circle",
-                        width: 140,
-                        fgColor: .orange,
-                        bgColor: .white,
-                        border: .black
-                    )
+
+                    SmallButtonView(text: "Cancel",
+                                    icon: "arrow.left.circle",
+                                    width: 150,
+                                    fgColor: .orange,
+                                    bgColor: .white,
+                                    border: .black)
                 }
+                .accessibilityLabel("Cancel adding loan")
                 
                 Button {
                     if validate() {
                         inputs.loanItems.append(
-                            LoanItem(
-                                name: loanName,
-                                outstandingBalance: outstandingBalance,
-                                interestRate: interestRate,
-                                minimumPayment: minimumPayment
-                            )
+
+                            LoanItem(name: loanName,
+                                     outstandingBalance: outstandingBalance,
+                                     interestRate: yearlyInterest,
+                                     minimumPayment: minimumPayment)
                         )
                         dismiss()
                     }
                 } label: {
-                    SmallButtonView(
-                        text: "Done",
-                        icon: "checkmark.circle",
-                        width: 140,
-                        fgColor: .white,
-                        bgColor: .orange,
-                        border: .orange
-                    )
+
+                    SmallButtonView(text: "Add",
+                                    icon: "checkmark.circle",
+                                    width: 133,
+                                    fgColor: .orange,
+                                    bgColor: .white,
+                                    border: .black)
                 }
+                .accessibilityLabel("Add loan")
+                .accessibilityHint("Add loan to your finances")
+
+                
             }
-            .padding(.bottom, 12)
+
         }
         .onChange(of: errorText) {
             if let msg = errorText {
                 UIAccessibility.post(notification: .announcement, argument: "Error: \(msg)")
+
+                // Jump to the accessibility focus state in the error message above
                 errorFocused = true
             }
         }
+        
+        Spacer()
     }
 }
 
