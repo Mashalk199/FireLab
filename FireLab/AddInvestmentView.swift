@@ -165,7 +165,6 @@ struct AddInvestmentView: View {
                             )
                         )
                         currETF.selectedETF = nil
-                        print(inputs.investmentItems)
                         
                         dismiss()
                     }

@@ -7,16 +7,9 @@
 
 import Foundation
 import SwiftUI
-/// This file is where all the common components in the app will be retrieved from.
-struct Logo : View {
-    var body: some View {
-        Text("FireLab")
-            .font(.system(size: 36, weight: .black))
-            .fontWeight(.black)
-            .foregroundColor(.orange)
-    }
-}
-/// This button is displayed on the first page, letting users decide which type of calculation they want to try.
+/// This Components file is where all the common components in the app will be retrieved from, such as navigation buttons and input fields.
+
+/// This BigButton is displayed on the first page, letting users decide whether to perform a new calculation or visit past calculations.
 struct BigButton : View {
     var text: String
     var hint: String
@@ -246,115 +239,52 @@ struct DateField : View {
     }
 }
 
-/** This is used in the InvestmentView screen which displays all user-selected investments in a format of a list
- of cards, and each card has a small field inside that lets the user type in a percentage allocation they want to set for
- a particular investment. */
-struct InvestmentAllocationCard : View {
-    @Binding var item: InvestmentItem
-    @Binding var itemList: [InvestmentItem]
-    var body: some View {
-        RoundedRectangle(cornerRadius: 20)
-            .fill(Color(.lightGray))
-            .frame(width: 215, height: 200)
-            .overlay(alignment: .topTrailing) {
-                // Add .destructive annotation as per accessibility HIG
-                Button(role: .destructive) {
-                    if let idx = itemList.firstIndex(of: item) {
-                        itemList.remove(at: idx)
-                    }
-                } label: {
-                    Image(systemName: "x.circle")
-                        .font(.system(size: 25, weight: .bold))
-                        .padding(10)
-                    // Hides this icon from being dictated by voiceover
-                        .accessibilityHidden(true)
-                }
-                .accessibilityLabel("Delete \(item.name) investment")
-                .accessibilityHint("Removes this investment from the list")
-            }
-            .overlay(
-                    VStack {
-                        Text(item.name)
-                            .font(.system(size: 20, weight: .black))
-                            .frame(width: 170, alignment: .leading)
-                            .lineLimit(nil)
-                            .fixedSize(horizontal: false, vertical: true)
-                        
-                        HStack {
-                            Text("Investment Portfolio Allocation")
-                                .frame(width:100, alignment: .center)
-                                .lineLimit(nil)
-                                .fixedSize(horizontal: false, vertical: true)
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .foregroundColor(Color.white)
-                                TextField("%",
-                                          text: $item.allocationPercent)
-                                .keyboardType(.decimalPad)
-                                .padding(.leading, 8)
-                                .accessibilityLabel("\(item.name) investment allocation percentage")
-                                .accessibilityValue(
-                                    Text(item.allocationPercent.isEmpty
-                                         ? "Empty"
-                                         : "\(item.allocationPercent) percent")
-                                )
-                                .accessibilityHint("Edit the allocation percentage")
-                                // Adds a clear button to make it easy to clear the allocation of for percentages, improving the user experience
-                                HStack {
-                                    Spacer()
-                                    if !item.allocationPercent.isEmpty {
-                                        Button {
-                                            item.allocationPercent = ""
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .foregroundColor(.gray.opacity(0.6))
-                                        }
-                                        .padding(.trailing, 8)
-                                        .accessibilityLabel("Clear allocation")
-                                        .accessibilityHint("Clears the allocation percentage for \(item.name)")
-                                        .accessibilityAddTraits(.isButton)
-                                    }
-                                }
-                            }
-                            .frame(width: 80, height: 35)
-                            
 
 
-                        }
-                    }
-                    // Logically groups these views of text and textfields for accessibility
-                    .accessibilityElement(children: .contain)
-                    .accessibilityLabel(Text("\(item.name), Allocation"))
-                
-            )
-    }
-}
+
+
+
+
+
 #Preview("Component Examples") {
-    @Previewable @State var textField: String = ""
-    NavigationStack {
-        VStack {
-            SmallNavButton(
-                text: "Go to Details",
-                fontSize: 18,
-                icon: "arrow.right.circle",
-                width: 200,
-                fgColor: .white,
-                bgColor: .blue,
-                border: .blue,
-                hint: "Navigates to the details screen",
-//                height: 50
-            ) {
-                Text("This is the destination view")
-                    .font(.title)
-                    .padding()
+    PreviewHarness()
+}
+
+private struct PreviewHarness: View {
+    @State private var textField = ""
+    @State private var loanItems: [LoanItem] = [
+        LoanItem(name: "HELP Loan", outstandingBalance: "40000", interestRate: "3.5", minimumPayment: "400"),
+        LoanItem(name: "Car Loan",  outstandingBalance: "100000", interestRate: "5.5", minimumPayment: "10000"),
+    ]
+    @State private var portfolioItems: [PortfolioItem] = [
+        PortfolioItem(name: "VDHG", type: .etf, value: "1234.56", expectedReturn: "3"),
+        PortfolioItem(name: "AusGov Bonds", type: .bond, value: "789", expectedReturn: "3"),
+        PortfolioItem(name: "DB Crude Oil Long Exchange Traded Fund", type: .bond, value: "", expectedReturn: "3")
+    ]
+
+    var body: some View {
+        NavigationStack {
+            VStack {
+                PortfolioCard(item: $portfolioItems[0], itemList: $portfolioItems)
+                LoanCard(item: $loanItems[0], itemList: $loanItems)
+
+                SmallNavButton(
+                    text: "Go to Details",
+                    fontSize: 18,
+                    icon: "arrow.right.circle",
+                    width: 200,
+                    fgColor: .white,
+                    bgColor: .blue,
+                    border: .blue,
+                    hint: "Navigates to the details screen"
+                ) {
+                    Text("This is the destination view").font(.title).padding()
+                }
+
+                InputField(label: "Loan Name", fieldVar: $textField, placeholder: "", fieldWidth: 200)
             }
-            InputField(
-                label: "Loan Name",
-                fieldVar: $textField,
-                placeholder: "",
-                fieldWidth: 200,
-            )
+            .padding()
         }
-        .padding()
+        .previewLayout(.sizeThatFits) // optional: faster + fewer layout surprises
     }
 }

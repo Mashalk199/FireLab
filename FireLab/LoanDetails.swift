@@ -19,48 +19,7 @@ struct LoanDetails: View {
         ScrollView {
             VStack(spacing: 20) {
                 ForEach($inputs.loanItems) { $item in
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color(.lightGray))
-                        .frame(width: 330, height: 200)
-                        .overlay(alignment: .topTrailing) {
-                            // Add .destructive annotation as per accessibility HIG
-                            Button(role: .destructive) {
-                                if let idx = inputs.loanItems.firstIndex(where: { $0.id == item.id }) {
-                                    inputs.loanItems.remove(at: idx)  // <-- fixed
-                                }
-                            } label: {
-                                Image(systemName: "x.circle")
-                                    .font(.system(size: 25, weight: .bold))
-                                    .padding(10)
-                                // Hides this icon from being dictated by voiceover
-                                    .accessibilityHidden(true)
-                            }
-                            .accessibilityLabel("Delete \(item.name) investment")
-                            .accessibilityHint("Removes this investment from the list")
-                        }
-                        .overlay(
-                            VStack(spacing: 10) {
-                                Text(item.name)
-                                    .font(.system(size: 20, weight: .black))
-                                    .frame(width: 170, alignment: .center)
-                                    .lineLimit(nil)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .padding(.top, 40)
-                                    .padding(.bottom, 20)
-                                if let balance = Double(item.outstandingBalance) {
-                                    Text("Outstanding balance: \(balance.formatted(.currency(code: "AUD")))")
-                                } else {
-                                    Text("Outstanding balance: \(item.outstandingBalance)")
-                                }
-                                if let payment = Double(item.minimumPayment) {
-                                    Text("Minimum monthly payment: \(payment.formatted(.currency(code: "AUD")))")
-                                } else {
-                                    Text("Minimum monthly payment: \(item.minimumPayment)")
-                                }
-                                Text("Growth rate: \(item.interestRate)%")
-                                Spacer()
-                            }
-                        )
+                    LoanCard(item: $item, itemList: $inputs.loanItems)
                 }
             }
             Spacer()
@@ -89,6 +48,57 @@ struct LoanDetails: View {
             }
             
         }
+    }
+}
+
+struct LoanCard : View {
+    
+    @Binding var item: LoanItem
+    @Binding var itemList: [LoanItem]
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 20)
+            .fill(Color(.lightGray))
+            .frame(width: 330, height: 200)
+            .overlay(alignment: .topTrailing) {
+                // Add .destructive annotation as per accessibility HIG
+                Button(role: .destructive) {
+                    if let idx = itemList.firstIndex(where: { $0.id == item.id }) {
+                        itemList.remove(at: idx)  // <-- fixed
+                    }
+                } label: {
+                    Image(systemName: "x.circle")
+                        .font(.system(size: 25, weight: .bold))
+                        .padding(10)
+                    // Hides this icon from being dictated by voiceover
+                        .accessibilityHidden(true)
+                }
+                .accessibilityLabel("Delete \(item.name) loan")
+                .accessibilityHint("Removes this loan from the list")
+            }
+            .overlay(
+                VStack(spacing: 10) {
+                    Text(item.name)
+                        .font(.system(size: 20, weight: .black))
+                        .frame(width: 170, alignment: .center)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 40)
+                        .padding(.bottom, 20)
+                    if let balance = Double(item.outstandingBalance.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                        Text("Outstanding balance: \(balance.formatted(.currency(code: "AUD")))")
+                    } else {
+                        Text("Outstanding balance: \(item.outstandingBalance)")
+                    }
+                    if let payment = Double(item.minimumPayment) {
+                        Text("Minimum monthly payment: \(payment.formatted(.currency(code: "AUD")))")
+                    } else {
+                        Text("Minimum monthly payment: \(item.minimumPayment)")
+                    }
+                    Text("Growth rate: \(item.interestRate)%")
+                    Spacer()
+                }
+            )
     }
 }
 
