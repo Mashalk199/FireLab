@@ -168,7 +168,14 @@ struct AddPortfolioItemView: View {
                 
             }
             
-                    }
+        }
+        .onChange(of: errorText) {
+            if let msg = errorText {
+                UIAccessibility.post(notification: .announcement, argument: "Error: \(msg)")
+                // Jump to the accessibility focus state in the error message above
+                errorFocused = true
+            }
+        }
         .padding()
     }
     private enum PortfolioItemType: String {

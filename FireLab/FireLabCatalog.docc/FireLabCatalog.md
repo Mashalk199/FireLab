@@ -10,6 +10,7 @@ The calculation works by figuring out the minimum amount the user needs to grow 
 
 Some assumptions are made for our *limited* financial forecaster:
 - The user will retire no matter what at 67 years of age. Regardless of their expenses or assets. Once they recieve the pension, they are considered retired, and do not have to work.
+- The only available ETFs are U.S based ETFs as the API only allows U.S based ETFs to be available on the free tier. Currency will be converted to AUD.
 - The user will take tax into account when providing their own yearly return percentage.
 - The user never wants to default on any of their loans.
 - The user provide details such that they can pay off their debt before they reach 67. As this is not a completely comprehensive financial planner, if the user wants to ensure they pay off their debts, they will have to set higher minimum monthly payments for their debts.

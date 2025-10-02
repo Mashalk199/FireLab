@@ -5,7 +5,7 @@
 //
 
 import SwiftUI
-import UIKit
+
 /** In this screen, we ask the user to provide their date of birth, yearly non-housing expenses, yearly financial independence (FI/FIRE) contribution, assumed yearly inflation rate and assumed super after-tax growth rate.
  
  There are also 3 buttons, each leading the user to a different screen to provide more details about their financial situation, the 3 buttons leading to housing/mortgage, loan and investment portfolio detail screens.

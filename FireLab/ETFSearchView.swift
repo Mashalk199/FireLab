@@ -14,17 +14,16 @@ struct ETFSearchView: View {
     @ObservedObject var currETF: SelectedETF
     @State private var fileContent: String = "Loading..."
     @State private var query = ""
-    
-    
-    @State var all = ["VDHG", "VS&P500", "NZAM Nasdaq 100", "ETF"]
-    /// This is a computed variable storing all ETF names to be displayed, that were either filtered from a user's query, or stores all ETF's when no query has been made.
-    var filtered: [String] {
-        guard !query.isEmpty else { return all }
-        return all.filter {
-            $0.localizedCaseInsensitiveContains(query)
-        }
-    }
+    @StateObject private var vm = ETFSearchViewModel()
 
+    /// This is a computed variable storing all ETF names to be displayed, that were either filtered from a user's query, or stores all ETF's when no query has been made.
+    private var filtered: [ETFDoc] {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return vm.all }
+        return vm.all.filter { $0.name.localizedCaseInsensitiveContains(q) || $0.symbol.localizedCaseInsensitiveContains(q) }
+    }
+    
+    
     var body: some View {
         VStack(spacing: 12) {
             FireLogo().padding(.top, 8)
@@ -38,40 +37,31 @@ struct ETFSearchView: View {
             .background(RoundedRectangle(cornerRadius: 12).fill(Color.gray.opacity(0.12)))
             .padding(.horizontal)
 
-            List(filtered, id: \.self) { name in
-                Button {
-                    currETF.selectedETF = name
-                    dismiss()
-                }
-                label: { Text(name).frame(maxWidth: .infinity, alignment: .leading) }
-            }
-            .listStyle(.plain)
-        }
-        .onAppear {
-            loadFileContent()
-        }
-    }
-    /// This function reads a plaintext file line-by-line and stores it in the "all" state variable.
-    private func loadFileContent() {
-            if let fileURL = Bundle.main.url(forResource: "ETF List", withExtension: "txt") {
-                do {
-                    let contents = try String(contentsOf: fileURL, encoding: .utf8)
-                    fileContent = contents
-                    // Parse the file content into an array of ETF names
-                    all = contents.components(separatedBy: .newlines)
-                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                        .filter { !$0.isEmpty }
-                } catch {
-                    fileContent = "Error loading file: \(error.localizedDescription)"
-                    // Fallback to default list if file loading fails
-                    all = ["VDHG", "VS&P500", "NZAM Nasdaq 100", "ETF"]
-                }
+            if vm.isLoading {
+            ProgressView("Loading ETFs…")
+                .padding()
+            } else if let err = vm.errorMessage {
+                Text(err).foregroundStyle(.red).padding()
             } else {
-                fileContent = "File not found in bundle."
-                // Fallback to default list if file not found
-                all = ["VDHG", "VS&P500", "NZAM Nasdaq 100", "ETF"]
+                List(filtered) { etf in
+                    Button {
+                        currETF.selectedETF = etf
+                        dismiss()
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(etf.name)
+                            Text("\(etf.symbol) · \(etf.micCode)")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .listStyle(.plain)
             }
         }
+        .task { await vm.loadOnce() }   // fetch once when the view appears
+    }
 }
 
 #Preview {

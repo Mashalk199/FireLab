@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# Project
+# Ignore all GoogleService-Info.plist files
+**/GoogleService-Info.plist
 # Xcode
 *.xcuserstate
 xcuserdata/

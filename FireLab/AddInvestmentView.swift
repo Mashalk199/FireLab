@@ -9,7 +9,7 @@ import SwiftUI
 import UIKit
 /// This object is used to pass information from the ETFSearchView screen about the selected ETF to this AddInvestmentView screen
 class SelectedETF: ObservableObject {
-    @Published var selectedETF: String?
+    @Published var selectedETF: ETFDoc?
 }
 
 /** This screen allows users to add an investment of ETF or bond type to their portfolio that they want to invest into. Users can either select an ETF from the provided list or create their own bond that they are investing in.
@@ -23,7 +23,6 @@ struct AddInvestmentView: View {
     
     @State private var tab = 0   // 0: ETF, 1: Bond
     @State private var name = ""
-//    @State private var amount = ""
     @State private var expected = ""
     @State private var autoCalc = false
     @State private var errorText: String?
@@ -153,7 +152,7 @@ struct AddInvestmentView: View {
                     if validate() {
                         let displayName = tab == 0
                         // Uses nil coalescing operator to set etf name
-                        ? (currETF.selectedETF ?? "ETF")
+                        ? (currETF.selectedETF?.name ?? "ETF")
                         : (name.isEmpty ? "Bond #1" : name)
                         
                         inputs.investmentItems.append(
