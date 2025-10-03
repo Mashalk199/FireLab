@@ -7,9 +7,10 @@
 
 import SwiftUI
 
-struct LoanDetails: View {
+struct LoanDetailsView: View {
     @EnvironmentObject var inputs: FireInputs
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var vm = LoanDetailsViewModel()
 
     var body: some View {
         FireLogo()
@@ -18,13 +19,18 @@ struct LoanDetails: View {
             .font(.headline)
         ScrollView {
             VStack(spacing: 20) {
+                // NOTE: kept your binding-based iteration;
+                // the cell now calls back into the VM for deletion.
                 ForEach($inputs.loanItems) { $item in
-                    LoanCard(item: $item, itemList: $inputs.loanItems)
+                    LoanCard(
+                        item: $item,
+                        onDelete: { vm.delete(loanID: $0.id) } // calls VM
+                    )
                 }
             }
             Spacer()
         }
-        
+
         HStack(spacing: 14) {
             SmallNavButton(text: "Add Loan",
                         icon: "plus.circle",
@@ -35,7 +41,7 @@ struct LoanDetails: View {
                         hint: "Add a loan to your list") {
                 AddLoanView()
             }
-            
+
             Button {
                 dismiss()
             } label: {
@@ -44,18 +50,19 @@ struct LoanDetails: View {
                                 width: 140,
                                 fgColor: .orange,
                                 bgColor: .white,
-                                border: .black,)
+                                border: .black)
             }
-            
         }
+        .onAppear { vm.attach(inputs: inputs) } // attach EnvironmentObject
     }
 }
 
-struct LoanCard : View {
-    
+struct LoanCard: View {
+
     @Binding var item: LoanItem
-    @Binding var itemList: [LoanItem]
-    
+    // replaced itemList binding with a simple callback so logic lives in VM
+    var onDelete: (LoanItem) -> Void
+
     var body: some View {
         RoundedRectangle(cornerRadius: 20)
             .fill(Color(.lightGray))
@@ -63,14 +70,12 @@ struct LoanCard : View {
             .overlay(alignment: .topTrailing) {
                 // Add .destructive annotation as per accessibility HIG
                 Button(role: .destructive) {
-                    if let idx = itemList.firstIndex(where: { $0.id == item.id }) {
-                        itemList.remove(at: idx)  // <-- fixed
-                    }
+                    onDelete(item) // delegate deletion to VM
                 } label: {
                     Image(systemName: "x.circle")
                         .font(.system(size: 25, weight: .bold))
                         .padding(10)
-                    // Hides this icon from being dictated by voiceover
+                        // Hides this icon from being dictated by voiceover
                         .accessibilityHidden(true)
                 }
                 .accessibilityLabel("Delete \(item.name) loan")
@@ -85,16 +90,19 @@ struct LoanCard : View {
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 40)
                         .padding(.bottom, 20)
+
                     if let balance = Double(item.outstandingBalance.trimmingCharacters(in: .whitespacesAndNewlines)) {
                         Text("Outstanding balance: \(balance.formatted(.currency(code: "AUD")))")
                     } else {
                         Text("Outstanding balance: \(item.outstandingBalance)")
                     }
+
                     if let payment = Double(item.minimumPayment) {
                         Text("Minimum monthly payment: \(payment.formatted(.currency(code: "AUD")))")
                     } else {
                         Text("Minimum monthly payment: \(item.minimumPayment)")
                     }
+
                     Text("Growth rate: \(item.interestRate)%")
                     Spacer()
                 }
@@ -109,7 +117,7 @@ struct LoanCard : View {
         LoanItem(name: "Car Loan", outstandingBalance: "100000", interestRate: "5.5", minimumPayment: "10000"),
     ]
     return NavigationStack {
-        LoanDetails()
+        LoanDetailsView()
     }
-        .environmentObject(inputs)
+    .environmentObject(inputs)
 }

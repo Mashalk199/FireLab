@@ -43,9 +43,22 @@
 		CA9C48472E6FE08E00B603A9 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CA553DE22E8CF171001FD2D8 /* Exceptions for "FireLab" folder in "FireLab" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = CA3638BA2E546A5600F8E067 /* FireLab */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CA3638BD2E546A5600F8E067 /* FireLab */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CA553DE22E8CF171001FD2D8 /* Exceptions for "FireLab" folder in "FireLab" target */,
+			);
 			path = FireLab;
 			sourceTree = "<group>";
 		};
