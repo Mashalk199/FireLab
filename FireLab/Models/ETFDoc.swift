@@ -8,7 +8,7 @@
 
 import FirebaseFirestore
 
-struct ETFDoc: Identifiable {
+struct ETFDoc: Identifiable, Codable, Hashable  {
     let id: String
     let symbol: String
     let name: String

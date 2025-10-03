@@ -42,16 +42,22 @@ enum InvestmentType: String, Codable { case etf, bond, superannuation }
 /// This object stores the details of a particular investment, whether it is an existing ETF selected from the database, or a user-created bond
 struct InvestmentItem: Identifiable, Hashable, Codable {
     let id = UUID()
+
+    // Fields your calculator already uses
     var name: String
     var type: InvestmentType
     var allocationPercent: String
     var expectedReturn: String
-    
-    private enum CodingKeys: String, CodingKey {
-           case name, type, allocationPercent, expectedReturn
-       }
-}
 
+    var etfSnapshot: ETFDoc?  // nil for bonds
+
+    // Convenience
+    var isETF: Bool { type == .etf }
+
+    private enum CodingKeys: String, CodingKey {
+        case name, type, allocationPercent, expectedReturn, etfSnapshot
+    }
+}
 struct LoanItem: Identifiable {
     let id = UUID()
     var name: String

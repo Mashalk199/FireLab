@@ -56,15 +56,18 @@ final class AddInvestmentViewModel: ObservableObject {
         guard validate(), let inputs else { return false }
 
         let displayName = tab == 0
-        ? (currETF.selectedETF?.name ?? "ETF")
-        : (name.isEmpty ? "Bond #1" : name)
+            ? (currETF.selectedETF?.name ?? "ETF")
+            : (name.isEmpty ? "Bond #1" : name)
+
+        let snapshot = (tab == 0) ? currETF.selectedETF : nil
 
         inputs.investmentItems.append(
             InvestmentItem(
                 name: displayName,
                 type: tab == 0 ? .etf : .bond,
                 allocationPercent: "",
-                expectedReturn: expected
+                expectedReturn: expected,
+                etfSnapshot: snapshot
             )
         )
 
