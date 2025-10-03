@@ -8,28 +8,33 @@
 import Foundation
 /**
  This object stores all user inputs collected across all app screens to be used in the final calculation in an environment object.
- 
- This data includes:
-    - Date of birth
-    - Yearly expenses
-    - Yearly financial independence contribution amount
-    - Assumed yearly inflation rate
-    - Assumed yearly superannuation after-tax growth rate
-    - A list of InvestmentItem objects that store details about each investment in the user's investment plan including names and growth rates.
  */
 class FireInputs: ObservableObject {
+    /// Date of birth of user
     @Published var dateOfBirth: Date = Date()
+    /// Yearly non-housing expenses
     @Published var expensesText: String = ""
+    /// Yearly financial independence contribution
     @Published var FIContributionText: String = ""
+    /// Yearly inflation rate
     @Published var inflationRateText: String = ""
+    /// Yearly after-tax growth rate
     @Published var superGrowthRateText: String = ""
+    /// Outstanding mortgage balance
     @Published var outstandingMortgageText: String = ""
-    @Published var mortgageYearlyInterestText: String = ""
+    /// Mortgage yearly interest rate
     @Published var weeklyRentText: String = ""
+    /// Mortgage minimum monthly payment
+    @Published var mortgageYearlyInterestText: String = ""
+    /// Weekly rent
     @Published var mortgageMinimumPaymentText: String = ""
+    /// Checks whether the housing details were set by the user or not
     @Published var housingDetailsSet: HousingDetailsSet = .unset
+    /// List of all investments the user has added. This is the investments they will plan on investing into in the future, containing allocations
     @Published var investmentItems: [InvestmentItem] = []
+    /// List of all portfolio items the user has added. This is the investments they already invested in in the past
     @Published var portfolioItems: [PortfolioItem] = []
+    /// List of all loan items the user has added.
     @Published var loanItems: [LoanItem] = []
 
 }

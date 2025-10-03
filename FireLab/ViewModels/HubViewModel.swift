@@ -32,7 +32,7 @@ final class HubViewModel: ObservableObject {
         guard let cont = Double(inputs.FIContributionText), cont > 0 else { errorText = "Enter contribution > 0"; return false }
         guard let infl = Double(inputs.inflationRateText), (0...100).contains(infl) else { errorText = "Enter 100 >= inflation rate >= 0"; return false }
         guard let superR = Double(inputs.superGrowthRateText), (0...100).contains(superR) else { errorText = "Enter 100 >= super growth rate >= 0"; return false }
-
+        if inputs.housingDetailsSet == HousingDetailsSet.unset { errorText = "Please enter housing details."; return false }
         errorText = nil
         return true
     }
