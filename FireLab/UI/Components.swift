@@ -265,8 +265,8 @@ private struct PreviewHarness: View {
     var body: some View {
         NavigationStack {
             VStack {
-                PortfolioCard(item: $portfolioItems[0], itemList: $portfolioItems)
-                LoanCard(item: $loanItems[0], itemList: $loanItems)
+//                PortfolioCard(item: $portfolioItems[0], itemList: $portfolioItems)
+//                LoanCard(item: $loanItems[0], itemList: $loanItems)
 
                 SmallNavButton(
                     text: "Go to Details",

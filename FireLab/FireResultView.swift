@@ -50,7 +50,7 @@ struct FireResultView: View {
                     // Show a plain loading screen first
                     if isCalculating {
                         Spacer()
-                        Text("Calculating…")
+                        Text("Calculating...")
                             .font(.title)
                             .foregroundStyle(.secondary)
                         Text("This might take a minute")

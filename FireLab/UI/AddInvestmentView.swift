@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UIKit
+
 /// This object is used to pass information from the ETFSearchView screen about the selected ETF to this AddInvestmentView screen
 class SelectedETF: ObservableObject {
     @Published var selectedETF: ETFDoc?
@@ -19,43 +20,22 @@ class SelectedETF: ObservableObject {
 struct AddInvestmentView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var inputs: FireInputs
-    @ObservedObject var currETF: SelectedETF
-    
-    @State private var tab = 0   // 0: ETF, 1: Bond
-    @State private var name = ""
-    @State private var expected = ""
-    @State private var autoCalc = false
-    @State private var errorText: String?
+
+    @StateObject private var vm: AddInvestmentViewModel
+
     @AccessibilityFocusState private var errorFocused: Bool
 
-    /// Function to validate user input, ensuring an ETF is selected or that a bond name is set
-    func validate() -> Bool {
-        if tab == 0 {
-            guard let _ = currETF.selectedETF
-            else {
-                errorText = "Please select an ETF"; return false }
-        }
-        else if tab == 1 {
-            if name == "" {
-                errorText = "Please create a bond name"
-                return false
-            }
-        }
-        
-        guard let expectedETFReturn = Double(expected),
-                expectedETFReturn <= 100, expectedETFReturn > 0
-        else {
-            errorText = "Enter 100 >= Expected Return > 0"; return false }
-            
-        errorText = nil
-        return true
+    // take SelectedETF and pass it to the VM
+    init(currETF: SelectedETF) {
+        _vm = StateObject(wrappedValue: AddInvestmentViewModel(currETF: currETF))
     }
-    
+
     var body: some View {
         VStack(spacing: 16) {
             FireLogo()
                 .padding(.top, 8)
-            if let msg = errorText {
+
+            if let msg = vm.errorText {
                 Text(msg)
                     .foregroundStyle(.red)
                     .font(.footnote)
@@ -64,17 +44,14 @@ struct AddInvestmentView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: 400, alignment: .center)
                     .padding(.horizontal)
-                
-                    // Accessibility: mark and focus the error
                     .accessibilityLabel("Error: \(msg)")
                     .accessibilityHint("Fix the fields below, then try again.")
-                    // read before other content
                     .accessibilitySortPriority(1000)
                     .accessibilityAddTraits(.isStaticText)
-                
                     .accessibilityFocused($errorFocused)
-                }
-            Picker("Investment type", selection: $tab) {
+            }
+
+            Picker("Investment type", selection: $vm.tab) {
                 Text("ETF").tag(0)
                     .accessibilityLabel("Exchange-traded fund")
                     .accessibilityHint("Select to enter details about an ETF investment")
@@ -86,115 +63,96 @@ struct AddInvestmentView: View {
             .padding(.horizontal)
             .accessibilityLabel("Select investment type")
 
-            
-            if tab == 0 {
+            if vm.tab == 0 {
                 VStack(spacing: 12) {
-                    SmallNavButton(text: "Select ETF",
-                                fontSize: 18,
-                                icon: "arrow.right.circle",
-                                width: 180,
-                                fgColor: .orange,
-                                bgColor: .white,
-                                border: .black,
-                                hint: "Add an investment to your list",
-                                height: 60,
+                    SmallNavButton(
+                        text: "Select ETF",
+                        fontSize: 18,
+                        icon: "arrow.right.circle",
+                        width: 180,
+                        fgColor: .orange,
+                        bgColor: .white,
+                        border: .black,
+                        hint: "Add an investment to your list",
+                        height: 60
                     ) {
-                        ETFSearchView(currETF: currETF)
+                        ETFSearchView(currETF: vm.currETF)
                     }
                     .padding([.top, .bottom], 20)
-                            
-                    
-                    
+
                     FieldRow(
                         label: "Expected Yearly After-Tax Return",
-                        text: $expected,
+                        text: $vm.expected,
                         placeholder: "%"
                     )
-                    .opacity(autoCalc ? 0.4 : 1)
-                    .disabled(autoCalc)
-                    
+                    .opacity(vm.autoCalc ? 0.4 : 1)
+                    .disabled(vm.autoCalc)
+
                     Toggle(
                         "Let FireLab calculate expected yearly return (upcoming feature)",
-                        isOn: $autoCalc
+                        isOn: $vm.autoCalc
                     )
                     .disabled(true)
                     .padding(.horizontal)
                     .accessibilityLabel("Let FireLab handle yearly return")
-                    .accessibilityValue(autoCalc ? "true" : "false")
+                    .accessibilityValue(vm.autoCalc ? "true" : "false")
                 }
             } else {
                 VStack(spacing: 12) {
                     FieldRow(
                         label: "Bond Name (Optional)",
-                        text: $name,
+                        text: $vm.name,
                         placeholder: "Bond #1"
                     )
-                    
-                    
                     FieldRow(
                         label: "Expected Yearly After-Tax Return",
-                        text: $expected,
+                        text: $vm.expected,
                         placeholder: "%"
                     )
                 }
             }
-            
+
             Spacer()
-            
+
             HStack(spacing: 24) {
                 RoundedBorderButton(title: "Cancel") {
                     dismiss()
                 }
                 .accessibilityLabel("Cancel adding investment")
-                
+
                 RoundedFillButton(title: "Add") {
-                    
-                    if validate() {
-                        let displayName = tab == 0
-                        // Uses nil coalescing operator to set etf name
-                        ? (currETF.selectedETF?.name ?? "ETF")
-                        : (name.isEmpty ? "Bond #1" : name)
-                        
-                        inputs.investmentItems.append(
-                            InvestmentItem(
-                                name: displayName,
-                                type: tab == 0 ? .etf : .bond,
-                                allocationPercent: "",
-                                expectedReturn: expected
-                            )
-                        )
-                        currETF.selectedETF = nil
-                        
+                    if vm.addInvestmentIfValid() {
                         dismiss()
+                    } else {
+                        errorFocused = true
                     }
                 }
                 .accessibilityLabel("Add investment")
-                
             }
             .padding(.bottom, 14)
         }
-        .onChange(of: errorText) {
-            if let msg = errorText {
+        // attach EnvironmentObject after the view exists
+        .onAppear { vm.attach(inputs: inputs) }
+        .onChange(of: vm.errorText) { _, new in
+            if let msg = new {
                 UIAccessibility.post(notification: .announcement, argument: "Error: \(msg)")
-                // Jump to the accessibility focus state in the error message above
                 errorFocused = true
             }
         }
-
-        
     }
 }
+
 /// This is a component that has a label and a field for the user to input numerical data
 struct FieldRow: View {
     var label: String
     @Binding var text: String
     var placeholder: String
-    
+
     var body: some View {
         HStack {
             Text(label)
                 .frame(width: 200, alignment: .leading)
-            
+
             TextField(placeholder, text: $text)
                 .keyboardType(.decimalPad)
                 .frame(width: 150, height: 35)
@@ -213,7 +171,7 @@ struct FieldRow: View {
 struct RoundedBorderButton: View {
     var title: String
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(title)
@@ -230,7 +188,7 @@ struct RoundedBorderButton: View {
 struct RoundedFillButton: View {
     var title: String
     var action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Text(title)
@@ -248,6 +206,5 @@ struct RoundedFillButton: View {
     NavigationStack {
         AddInvestmentView(currETF: SelectedETF())
             .environmentObject(FireInputs())
-            
     }
 }

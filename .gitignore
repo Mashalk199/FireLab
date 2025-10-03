@@ -4,6 +4,7 @@
 # Project
 # Ignore all GoogleService-Info.plist files
 **/GoogleService-Info.plist
+Development working out
 # Xcode
 *.xcuserstate
 xcuserdata/

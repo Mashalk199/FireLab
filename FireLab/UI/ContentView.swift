@@ -15,7 +15,7 @@ struct ContentView: View {
             VStack {
                 FireLogo()
                     .padding([.bottom], 160)
-                NavigationLink(destination: AddDetailsHub()) {
+                NavigationLink(destination: HubView()) {
                     BigButton(text:"Risky FIRE",
                               hint:"Opens financial independence details page")
                         .padding([.bottom], 25)
