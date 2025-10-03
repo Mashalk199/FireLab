@@ -6,7 +6,8 @@
 xcuserdata/
 DerivedData/
 *.xcworkspace
-project
+GoogleService-Info.plist
+**/GoogleService-Info.plist
 
 # Swift Package Manager
 .build/
