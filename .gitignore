@@ -6,6 +6,7 @@
 xcuserdata/
 DerivedData/
 *.xcworkspace
+project
 
 # Swift Package Manager
 .build/
