@@ -23,27 +23,51 @@ final class InvestmentViewModel: ObservableObject {
             .reduce(0, +)
     }
 
-    /// Computed property that checks whether the list of investments is not empty and that the total allocated percentages add up to near 100%.
+    /// True only when: there is at least one investment, all have valid allocations (0 < x ≤ 100), and totals ~ 100%.
     var canCalculate: Bool {
         guard let inputs, !inputs.investmentItems.isEmpty else { return false }
+        // Every allocation must parse and be in (0, 100]
+        let allItemsValid = inputs.investmentItems.allSatisfy { item in
+            guard let v = Double(item.allocationPercent.trimmingCharacters(in: .whitespaces)) else { return false }
+            return v > 0 && v <= 100
+        }
+        guard allItemsValid else { return false }
         return abs(totalPercent - 100) < 0.01
     }
     
     // Function to validate all user inputs moved from View
     func validate() -> Bool {
         guard let inputs else { return false }
-        if !canCalculate {
+        
+        // Per-item checks (also provide specific error messages)
+        for item in inputs.investmentItems {
+            let raw = item.allocationPercent.trimmingCharacters(in: .whitespaces)
+            guard let v = Double(raw) else {
+                errorText = "Please enter valid percentage allocations for \(item.name)"
+                return false
+            }
+            if v <= 0 {
+                errorText = "Allocation for \(item.name) must be greater than 0%"
+                return false
+            }
+            if v > 100 {
+                errorText = "Allocation for \(item.name) must be at most 100%"
+                return false
+            }
+        }
+        
+        // Ensure there is at least one investment
+        guard !inputs.investmentItems.isEmpty else {
+            errorText = "Please add at least one investment"
+            return false
+        }
+        
+        // Total must sum to ~100%
+        guard abs(totalPercent - 100) < 0.01 else {
             errorText = "Please ensure total allocation percentages sum to 100%"
             return false
         }
-        // Ensures there are no empty boxes for allocation percentages
-        for item in inputs.investmentItems {
-            if let _ = Double(item.allocationPercent.trimmingCharacters(in: .whitespaces)) {
-                continue
-            }
-            errorText = "Please enter valid percentage allocations"
-            return false
-        }
+        
         errorText = nil
         return true
     }

@@ -10,7 +10,6 @@ import Foundation
 @MainActor
 final class HousingDetailsViewModel: ObservableObject {
     @Published var errorText: String?
-    @Published var tab = HousingType.mortgage
 
     private var inputs: FireInputs?
 
@@ -20,7 +19,7 @@ final class HousingDetailsViewModel: ObservableObject {
     func validate() -> Bool {
         guard let inputs else { return false }
 
-        if tab == .mortgage {
+        if inputs.housingType == .mortgage {
             guard let outstanding = Double(inputs.outstandingMortgageText), outstanding > 0
             else { errorText = "Enter outstanding mortgage balance > 0"; return false }
             
@@ -36,7 +35,7 @@ final class HousingDetailsViewModel: ObservableObject {
                 return false
             }
         }
-        else if tab == .rent {
+        else if inputs.housingType == .rent {
             guard let weeklyRent = Double(inputs.weeklyRentText), weeklyRent >= 0
             else {
                 errorText = "Enter weekly rent >= 0"

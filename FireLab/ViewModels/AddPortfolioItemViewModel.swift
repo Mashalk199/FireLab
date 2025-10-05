@@ -73,7 +73,7 @@ final class AddPortfolioItemViewModel: ObservableObject {
                     name: superName,
                     type: .superannuation,
                     value: superValue,
-                    expectedReturn: ""   // not collected for super in current UI
+                    expectedReturn: inputs.superGrowthRateText   // not collected for super in current UI
                 )
             )
         }

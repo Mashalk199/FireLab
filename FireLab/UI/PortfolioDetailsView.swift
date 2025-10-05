@@ -29,9 +29,9 @@ struct PortfolioDetailsView: View {
             }
 
             HStack(spacing: 14) {
-                SmallNavButton(text: "Add Loan",
+                SmallNavButton(text: "Add Investment",
                             icon: "plus.circle",
-                            width: 160,
+                            width: 175,
                             fgColor: .white,
                             bgColor: .orange,
                             border: .orange,

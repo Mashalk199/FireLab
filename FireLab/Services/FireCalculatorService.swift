@@ -1,0 +1,524 @@
+//
+//  FireCalculator.swift
+//  FireLab
+//
+//  Created by Mashal Ahmad Khan on 5/10/2025.
+//
+
+
+//  FireCalculator.swift
+//  FireLab
+
+import Foundation
+
+struct FireCalculatorService {
+
+    static let DAYS_IN_YEAR: Double = 365.0
+
+    // Nominal daily factor for DEBT interest compounding
+    private static func dailyDebtFactor(_ annualNominal: Double) -> Double {
+        pow(1.0 + max(0.0, annualNominal), 1.0 / DAYS_IN_YEAR)
+    }
+
+    /**
+     Converts annual return to the amount compounded daily.
+     - Logic: Since compounding x times requires you to multiply by a return factor to the power of x, we can do the inverse to get the value compounding at a more regular interval.
+     */
+    private static func getDailyReturn(_ percentage: Double,_ annual_inflation: Double) -> Double {
+        pow(((1.0 + percentage) / (1.0 + annual_inflation)), (1.0/365.0))
+    }
+
+    /**
+     Returns the proportions of the FI contribution to be allocated for brokerage and for super, based on the brokerage proportion provided.
+     */
+    private static func getProps(_ proportion: Double) -> (Double, Double) {
+        (proportion, 1.0 - proportion)
+    }
+
+    /**
+     Converts and returns the numerical value inside the string variable storing the user's input, in a double format.
+     */
+    private static func getDouble(_ string: String) -> Double {
+        Double(string.trimmingCharacters(in: .whitespaces)) ?? 2000
+    }
+
+    /**
+     Withdraw up to `amount` from `vec` in proportion to `weights` (or value-weighted if nil).
+     - Returns leftover amount not covered (>= 0).
+     */
+    private static func withdrawProRata(_ vec: inout [Double], weights: [Double]?, amount: Double) -> Double {
+        guard !vec.isEmpty, amount > 0 else { return amount }
+        let n = vec.count
+        let total = vec.reduce(0,+)
+        let w: [Double]
+        if let weights, weights.reduce(0,+) > 0 {
+            w = weights
+        } else {
+            w = total > 0 ? vec.map { $0 / total } : Array(repeating: 1.0 / Double(n), count: n)
+        }
+        let avail = vec.reduce(0,+)
+        let take = min(amount, avail)
+        if take > 0 {
+            for i in vec.indices {
+                vec[i] = max(0.0, vec[i] - take * w[i])
+            }
+        }
+        return amount - take
+    }
+
+    /**
+     Returns the number of days in between 2 specific dates
+     */
+    private static func daysBetween(_ startDate: Date, _ endDate: Date) -> Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: startDate, to: endDate)
+        return components.day ?? 0
+    }
+
+    // MARK: - Public entry point used by the ViewModel
+
+    /** Uses all data gathered from user and calculates the retirement result. */
+    static func calculateRetirement(inputs: FireInputs) async throws -> Result {
+
+        var daily_expenses: Double = getDouble(inputs.expensesText) / DAYS_IN_YEAR
+        let yearlyTotalFI = max(0.0, getDouble(inputs.FIContributionText))   // yearly total
+        let monthlyTotal  = yearlyTotalFI / 12.0                              // derive monthly
+        let dailyFI       = yearlyTotalFI / DAYS_IN_YEAR                      // derive daily
+
+        let annual_inflation: Double = getDouble(inputs.inflationRateText) / 100.0
+        let superAnnual: Double      = getDouble(inputs.superGrowthRateText) / 100.0
+        let superGrowthRate          = getDailyReturn(superAnnual, annual_inflation)
+
+        // explicit branch by user choice
+        switch inputs.housingType {
+        case .mortgage:
+            break
+        case .rent:
+            let weeklyRent = max(0.0, getDouble(inputs.weeklyRentText))
+            if weeklyRent > 0 {
+                let annualRent = weeklyRent * 52.0
+                daily_expenses += annualRent / DAYS_IN_YEAR
+            }
+        }
+
+        // Future brokerage bucket = ETFs + Bonds
+        let futureBrokerage = inputs.investmentItems.filter { $0.type == .etf || $0.type == .bond }
+
+        // Weighted nominal hurdle from all future brokerage (for debt avalanche after mins)
+        let sumAlloc = futureBrokerage
+            .map { max(0.0, getDouble($0.allocationPercent)) }
+            .reduce(0, +)
+
+        let investHurdleAnnual: Double = {
+            guard !futureBrokerage.isEmpty, sumAlloc > 0 else { return 0.0 }
+            let weighted = futureBrokerage.map {
+                max(0.0, getDouble($0.allocationPercent)) *
+                max(0.0, getDouble($0.expectedReturn) / 100.0)
+            }.reduce(0, +)
+            return weighted / sumAlloc
+        }()
+
+        // -----------------
+        // Phase A: debts
+        // -----------------
+        var debts: [(name: String, balance: Double, annualRate: Double, minDaily: Double, dailyFactor: Double)] =
+            inputs.loanItems.map { li in
+                let bal  = max(0.0, getDouble(li.outstandingBalance))
+                let apr  = max(0.0, getDouble(li.interestRate) / 100.0)
+                let minM = max(0.0, getDouble(li.minimumPayment))
+                return (li.name, bal, apr, (minM * 12.0) / DAYS_IN_YEAR, dailyDebtFactor(apr))
+            }
+
+        if inputs.housingType == .mortgage {
+            let mBal  = max(0.0, getDouble(inputs.outstandingMortgageText))
+            let mAPR  = max(0.0, getDouble(inputs.mortgageYearlyInterestText) / 100.0)
+            let mMinM = max(0.0, getDouble(inputs.mortgageMinimumPaymentText))
+            if mBal > 0 || mAPR > 0 || mMinM > 0 {
+                debts.append((
+                    name: "Mortgage",
+                    balance: mBal,
+                    annualRate: mAPR,
+                    minDaily: (mMinM * 12.0) / DAYS_IN_YEAR,
+                    dailyFactor: dailyDebtFactor(mAPR)
+                ))
+            }
+        }
+
+        print("--- Phase A start ---")
+        let startDebtsStr = debts.map { "\($0.name)=\(String(format: "%.2f", $0.balance))" }.joined(separator: ", ")
+        print("Initial debts: [\(startDebtsStr)]")
+
+        let eps = 0.005
+        let today = Date()
+        let ageYearsNow = max(0.0, Double(daysBetween(inputs.dateOfBirth, today)) / DAYS_IN_YEAR)
+        let maxDebtDays = Int(max(0.0, (67.0 - ageYearsNow)) * DAYS_IN_YEAR)
+
+        var debtDays = 0
+        if !debts.isEmpty {
+            func allCleared() -> Bool { debts.allSatisfy { $0.balance <= eps } }
+            while debtDays < maxDebtDays && !allCleared() {
+                // (1) interest accrues
+                for i in debts.indices where debts[i].balance > eps {
+                    debts[i].balance *= debts[i].dailyFactor
+                }
+                // (2) pay minimums (highest APR first)
+                var fi_left = dailyFI
+                debts.sort { $0.annualRate > $1.annualRate }
+                for i in debts.indices {
+                    guard fi_left > 0, debts[i].balance > eps else { continue }
+                    let dueMin = min(debts[i].minDaily, debts[i].balance)
+                    let pay = min(fi_left, dueMin)
+                    debts[i].balance -= pay
+                    fi_left -= pay
+                }
+                // (3) avalanche toward debts whose APR >= hurdle
+                if fi_left > 0 {
+                    for i in debts.indices where debts[i].balance > eps && debts[i].annualRate >= investHurdleAnnual {
+                        let pay = min(fi_left, debts[i].balance)
+                        debts[i].balance -= pay
+                        fi_left -= pay
+                        if fi_left <= 0 { break }
+                    }
+                }
+                debtDays += 1
+                if debtDays % 365 == 0 {
+                    let hb = debts.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
+                    print("Day \(debtDays): debts=[\(hb)]")
+                }
+            }
+        }
+
+        // If we hit 67 (or otherwise didn’t clear all debts), stop here.
+        let remainingAfterPhaseA = debts.filter { $0.balance > eps }.map { ($0.name, $0.balance) }
+        let endDebtsStr = debts.map { "\($0.name)=\(String(format: "%.2f", $0.balance))" }.joined(separator: ", ")
+        print("Phase A finished after \(debtDays) days. Debts now: [\(endDebtsStr)]")
+        if !remainingAfterPhaseA.isEmpty {
+            let retirementDate = Calendar.current.date(byAdding: .day, value: debtDays, to: today) ?? today
+            return Result(
+                workingDays: debtDays,
+                retirementDate: retirementDate,
+                brokerProp: 0.0,
+                monthlyBrokerContribution: 0.0,
+                monthlySuperContribution: 0.0,
+                brokerageBalanceAtRetirement: 0.0,
+                superBalanceAtRetirement: 0.0,
+                debtClearDays: debtDays,
+                remainingDebts: remainingAfterPhaseA
+            )
+        }
+
+        // -----------------
+        // Phase B: invest and find retirement (bisection approach)
+        // -----------------
+        let workingDaysOffset   = debtDays
+        let days_to_60          = max(0, Int((60.0 - ageYearsNow) * DAYS_IN_YEAR) - workingDaysOffset)
+        let days_to_67          = max(0, Int((67.0 - ageYearsNow) * DAYS_IN_YEAR) - workingDaysOffset)
+        let days_during_super   = Int(7.0 * DAYS_IN_YEAR)
+
+        // “future” brokerage bucket (from futureBrokerage)
+        let brkWeights = futureBrokerage.map { max(0.0, getDouble($0.allocationPercent) / 100.0) }
+        let brkFactors = futureBrokerage.map {
+            getDailyReturn(max(0.0, getDouble($0.expectedReturn) / 100.0), annual_inflation)
+        }
+
+        // current holdings bucket (PortfolioItem): grow only, withdraw value-weighted (EXCLUDE super)
+        let nonSuperPortfolio = inputs.portfolioItems.filter { $0.type != .superannuation }
+        let currFactors = nonSuperPortfolio.map {
+            getDailyReturn(max(0.0, getDouble($0.expectedReturn) / 100.0), annual_inflation)
+        }
+        let startCurr   = nonSuperPortfolio.map { max(0.0, getDouble($0.value)) }
+
+        // super
+        let superFactor = superGrowthRate
+
+        // Bisection state
+        var (brokerProp, superProp) = getProps(0.5)
+        var minProp = 0.0, maxProp = 1.0
+
+        // Epoch seeds
+        var brokerListGrowth = Array(repeating: 0.0, count: futureBrokerage.count)
+        let currentSuperStart = inputs.portfolioItems
+            .filter { $0.type == .superannuation }
+            .map { max(0.0, getDouble($0.value)) }
+            .reduce(0, +)
+
+        var superGrowth = currentSuperStart
+        var workingDays = 0
+
+        print("futureBrokerage.count =", futureBrokerage.count)
+        print("startCurr (existing brokerage) =", startCurr.reduce(0,+))
+
+        var epochIndex = 0
+        for _ in 1...10 {
+            epochIndex += 1
+            // epoch start prints (insert right here)
+            let initDebts = debts.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
+            print("\n--- Epoch \(epochIndex) start ---")
+
+            print("Initial template debts: [\(initDebts)]")
+            brokerListGrowth = Array(repeating: 0.0, count: futureBrokerage.count)
+            superGrowth = currentSuperStart
+            workingDays = 0
+            var retiredBroker = false
+            var retiredSuper  = false
+
+            var currB = startCurr
+            var debtsTemplate = debts // continue accruing mins/interest in Phase B
+
+            while (workingDays < days_to_67) && !(retiredBroker && retiredSuper) {
+                // Accrue interest on debts for this day (Phase B accrual)
+                for i in debtsTemplate.indices where debtsTemplate[i].balance > eps {
+                    debtsTemplate[i].balance *= debtsTemplate[i].dailyFactor
+                }
+
+                // Stores the current amount of the daily FI contribution left to put towards loans and investments
+                var fi_left = dailyFI
+                // First we will fulfil loan obligations by paying minimums
+                debtsTemplate.sort { $0.annualRate > $1.annualRate }
+                for i in debtsTemplate.indices {
+                    if fi_left <= 0 { break }
+                    if debtsTemplate[i].balance <= eps { continue }
+                    let dueMin = min(debtsTemplate[i].minDaily, debtsTemplate[i].balance)
+                    let pay    = min(fi_left, dueMin)
+                    debtsTemplate[i].balance -= pay
+                    fi_left -= pay
+                }
+
+                // broker_cont stores the proportion of money of the remainder of the FI contribution to be put towards all brokerage investments. Same with super_cont for super
+                let brokerCont = brokerProp * fi_left
+                let superCont  = (1.0 - brokerProp) * fi_left
+
+                // contribute and grow future brokerage
+                for j in brokerListGrowth.indices {
+                    brokerListGrowth[j] += brokerCont * brkWeights[j]
+                    brokerListGrowth[j] *= brkFactors[j]
+                }
+
+                // Grow super by 1 day of investments
+                superGrowth += superCont
+                superGrowth *= superFactor
+
+                // grow current holdings (no contributions)
+                for i in currB.indices { currB[i] *= currFactors[i] }
+
+                workingDays += 1
+
+                if workingDays % 365 == 0 {
+                    let hb = debtsTemplate.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
+                    print("Epoch \(epochIndex) – day \(workingDays): debts=[\(hb)]")
+                }
+                // brokerage pre-60 feasibility
+                var retiredDays_tmp = 0
+                var portfolioList   = brokerListGrowth
+                var tempCurr        = currB
+                var tempDebts       = debtsTemplate
+
+                func sumAll() -> Double { portfolioList.reduce(0,+) + tempCurr.reduce(0,+) }
+
+                /* Here we reduce the current value of the brokerage investment to basically zero, to
+                 see whether the user can retire on it until the age of 60 or not. If the user reaches 60
+                 without retiring, the retiredBroker flag remains false, and the brokerage investment
+                 will continue to grow via more working days. */
+                // .reduce(0, +) gets the total sum of the array
+                while sumAll() >= daily_expenses &&
+                      !retiredBroker &&
+                      (workingDays + retiredDays_tmp < days_to_60) {
+
+                    // 1) GROW (exactly once per inner future day)
+                    for i in tempCurr.indices { tempCurr[i] *= currFactors[i] }
+                    for i in portfolioList.indices { portfolioList[i] *= brkFactors[i] }
+
+                    // 2) PAY DEBT MINIMUMS (withdraw only)
+                    var dailyDebtDue = 0.0
+                    for i in tempDebts.indices where tempDebts[i].balance > eps {
+                        tempDebts[i].balance *= tempDebts[i].dailyFactor // optional inner-day accrual
+                        dailyDebtDue += min(tempDebts[i].minDaily, tempDebts[i].balance)
+                    }
+                    if dailyDebtDue > 0 {
+                        var leftover = withdrawProRata(&tempCurr, weights: nil, amount: dailyDebtDue)
+                        if leftover > 0 { leftover = withdrawProRata(&portfolioList, weights: brkWeights, amount: leftover) }
+                        // reflect paid mins
+                        var toReduce = dailyDebtDue - max(0.0, leftover)
+                        for i in tempDebts.indices where toReduce > 0 && tempDebts[i].balance > eps {
+                            let due = min(tempDebts[i].minDaily, tempDebts[i].balance)
+                            let take = min(toReduce, due)
+                            tempDebts[i].balance -= take
+                            toReduce -= take
+                        }
+                    }
+
+                    // 3) PAY LIVING EXPENSES (withdraw only)
+                    var rem = daily_expenses
+                    rem = withdrawProRata(&tempCurr, weights: nil, amount: rem)
+                    if rem > 0 { rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: rem) }
+                    if rem > 1e-9 { break } // couldn’t cover today. break feasibility for brokerage
+
+                    retiredDays_tmp += 1
+                    if workingDays + retiredDays_tmp >= days_to_60 {
+                        retiredBroker = true
+                    }
+                }
+
+                // super post-60 feasibility (compounds to 60 then simulate future days)
+                let remain_to_60 = max(0, days_to_60 - workingDays)
+                var temp_super   = superGrowth * pow(superFactor, Double(remain_to_60))
+                var retiredSuperDays_tmp = 0
+                var tempDebtsSuper = debtsTemplate
+
+                while temp_super >= daily_expenses && !retiredSuper {
+                    // (optional) inner-day accrual
+                    for i in tempDebtsSuper.indices where tempDebtsSuper[i].balance > eps {
+                        tempDebtsSuper[i].balance *= tempDebtsSuper[i].dailyFactor
+                    }
+                    // 1) GROW super (once per inner future day)
+                    temp_super *= superFactor
+
+                    // 2) PAY DEBT MINIMUMS from super (withdraw only)
+                    var dailyDebtDue = 0.0
+                    for d in tempDebtsSuper where d.balance > eps { dailyDebtDue += min(d.minDaily, d.balance) }
+                    let pay = min(dailyDebtDue, temp_super)
+                    temp_super -= pay
+                    var toReduce = pay
+                    for i in tempDebtsSuper.indices where toReduce > 0 && tempDebtsSuper[i].balance > eps {
+                        let due = min(tempDebtsSuper[i].minDaily, tempDebtsSuper[i].balance)
+                        let take = min(toReduce, due)
+                        tempDebtsSuper[i].balance -= take
+                        toReduce -= take
+                    }
+
+                    // 3) PAY LIVING EXPENSES from super (withdraw only)
+                    if temp_super < daily_expenses { break }
+                    temp_super -= daily_expenses
+
+                    retiredSuperDays_tmp += 1
+                    if retiredSuperDays_tmp >= days_during_super {
+                        retiredSuper = true
+                    }
+                }
+
+                if workingDays >= days_to_67 {
+                    retiredBroker = true
+                    retiredSuper  = true
+                    break
+                }
+            }
+
+            // recompute full depletion lengths for “gradient”
+            var totalRetiredDays = 0
+            var portfolioList = brokerListGrowth
+            var tempCurr = currB
+            var tempDebtsGrad = debtsTemplate
+
+            while (portfolioList.reduce(0,+) + tempCurr.reduce(0,+)) >= daily_expenses {
+                // (optional) debt interest per inner day
+                for i in tempDebtsGrad.indices where tempDebtsGrad[i].balance > eps {
+                    tempDebtsGrad[i].balance *= tempDebtsGrad[i].dailyFactor
+                }
+                // 1) GROW once
+                for i in tempCurr.indices { tempCurr[i] *= currFactors[i] }
+                for i in portfolioList.indices { portfolioList[i] *= brkFactors[i] }
+
+                // 2) PAY debt mins
+                var dailyDebtDue = 0.0
+                for d in tempDebtsGrad where d.balance > eps { dailyDebtDue += min(d.minDaily, d.balance) }
+                if dailyDebtDue > 0 {
+                    var left = withdrawProRata(&tempCurr, weights: nil, amount: dailyDebtDue)
+                    if left > 0 { left = withdrawProRata(&portfolioList, weights: brkWeights, amount: left) }
+                    var toReduce = dailyDebtDue - max(0.0, left)
+                    for i in tempDebtsGrad.indices where toReduce > 0 && tempDebtsGrad[i].balance > eps {
+                        let due = min(tempDebtsGrad[i].minDaily, tempDebtsGrad[i].balance)
+                        let take = min(toReduce, due)
+                        tempDebtsGrad[i].balance -= take
+                        toReduce -= take
+                    }
+                }
+
+                // 3) PAY living expenses
+                var rem = withdrawProRata(&tempCurr, weights: nil, amount: daily_expenses)
+                if rem > 0 { rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: rem) }
+                if rem > 1e-9 { break }
+
+                totalRetiredDays += 1
+            }
+
+            let remain_to_60 = max(0, days_to_60 - workingDays)
+            var totalRetiredSuperDays = 0
+            var temp_super = superGrowth * pow(superFactor, Double(remain_to_60))
+            var tempDebtsSuper2 = debtsTemplate
+
+            while temp_super >= daily_expenses {
+                // (optional) debt interest per inner day
+                for i in tempDebtsSuper2.indices where tempDebtsSuper2[i].balance > eps {
+                    tempDebtsSuper2[i].balance *= tempDebtsSuper2[i].dailyFactor
+                }
+                // 1) GROW super
+                temp_super *= superFactor
+                // 2) PAY debt mins
+                var dailyDebtDue = 0.0
+                for d in tempDebtsSuper2 where d.balance > eps { dailyDebtDue += min(d.minDaily, d.balance) }
+                let pay = min(dailyDebtDue, temp_super)
+                temp_super -= pay
+                var toReduce = pay
+                for i in tempDebtsSuper2.indices where toReduce > 0 && tempDebtsSuper2[i].balance > eps {
+                    let due = min(tempDebtsSuper2[i].minDaily, tempDebtsSuper2[i].balance)
+                    let take = min(toReduce, due)
+                    tempDebtsSuper2[i].balance -= take
+                    toReduce -= take
+                }
+                // 3) PAY living expenses
+                if temp_super < daily_expenses { break }
+                temp_super -= daily_expenses
+
+                totalRetiredSuperDays += 1
+            }
+
+            let potential_pre60 = max(1, days_to_60 - workingDays) // avoid /0 when retiring at/after 60
+            let pre60_growth_tmp  = Double(totalRetiredDays) / Double(potential_pre60)
+            let post60_growth_tmp = Double(totalRetiredSuperDays) / Double(days_during_super)
+
+            let finalDebts = debtsTemplate.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
+            let brokerTotal = String(format: "%.2f", brokerListGrowth.reduce(0,+))
+            let superNow    = String(format: "%.2f", superGrowth)
+            print("Epoch \(epochIndex) finished after \(workingDays) days")
+            print("  Final debt balances: [\(finalDebts)]")
+            print("  Broker prop = \(String(format: "%.3f", brokerProp)), Brokerage total = \(brokerTotal), Super = \(superNow)")
+
+            if pre60_growth_tmp < post60_growth_tmp {
+                minProp = brokerProp
+            } else {
+                maxProp = brokerProp
+            }
+            let mid = (minProp + maxProp) / 2.0
+            (brokerProp, _) = getProps(mid)
+        }
+
+        // final summary values
+        let retirementDate = Calendar.current.date(byAdding: .day, value: workingDays + workingDaysOffset, to: today) ?? today
+        let monthlyBroker  = brokerProp * monthlyTotal
+        let monthlySuper   = (1.0 - brokerProp) * monthlyTotal
+        let brokerageAtRet = brokerListGrowth.reduce(0, +)
+
+        let remain_to_60_final = max(0, days_to_60 - workingDays)
+        let superAt60 = superGrowth * pow(superFactor, Double(remain_to_60_final))
+
+        print("\n=== Final Summary ===")
+        print("Working days: \(workingDays)")
+        print("Retirement date: \(retirementDate)")
+        print("Broker prop: \(String(format: "%.3f", brokerProp))")
+        print("Monthly -> Broker: \(String(format: "%.0f", monthlyBroker)), Super: \(String(format: "%.0f", monthlySuper))")
+        print("Brokerage @ retire: \(String(format: "%.0f", brokerageAtRet))")
+        print("Super (at 60):      \(String(format: "%.0f", superAt60))")
+
+        return Result(
+            workingDays: workingDays,
+            retirementDate: retirementDate,
+            brokerProp: brokerProp,
+            monthlyBrokerContribution: monthlyBroker,
+            monthlySuperContribution: monthlySuper,
+            brokerageBalanceAtRetirement: brokerageAtRet,
+            superBalanceAtRetirement: superAt60,
+            debtClearDays: debtDays,
+            remainingDebts: [] // empty => Phase B completed
+        )
+    }
+}

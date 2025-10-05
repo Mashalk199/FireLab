@@ -42,7 +42,7 @@ struct HousingDetailsView: View {
             
             Text("Are you renting or do you have a mortgage?")
             
-            Picker("Housing type", selection: $vm.tab) {
+            Picker("Housing type", selection: $inputs.housingType) {
                 Text("Mortgage").tag(HousingType.mortgage)
                     .accessibilityLabel("Mortgage")
                     .accessibilityHint("Select to enter details about your mortgage")
@@ -57,7 +57,7 @@ struct HousingDetailsView: View {
             
             VStack(spacing: 14) {
                 // If housing type is either mortgage or rent, display the appropriate input fields
-                if vm.tab == .mortgage {
+                if inputs.housingType == .mortgage {
                     InputField(label: "Outstanding Mortgage Balance",
                                fieldVar: $inputs.outstandingMortgageText,
                                placeholder: "$")
@@ -71,7 +71,7 @@ struct HousingDetailsView: View {
                                fieldVar: $inputs.mortgageMinimumPaymentText,
                                placeholder: "$")
                 }
-                else if vm.tab == .rent {
+                else if inputs.housingType == .rent {
                     InputField(label: "Weekly Rent",
                                fieldVar: $inputs.weeklyRentText,
                                placeholder: "$")

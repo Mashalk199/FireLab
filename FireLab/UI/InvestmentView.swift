@@ -103,7 +103,11 @@ struct InvestmentView: View {
             .padding(.bottom, 10)
         }
         .navigationDestination(isPresented: $goNext) {
-            FireResultView(retirementData: RetirementData())
+            FireCalculatingView(
+                vm: FireResultViewModel(),
+                retirementData: RetirementData()
+            )
+            .environmentObject(inputs) // keep passing the same inputs
         }
         .overlay(alignment: .bottomTrailing) {
             ZStack {
