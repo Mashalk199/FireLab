@@ -17,10 +17,12 @@ struct FireCalculatingView: View {
             if vm.isCalculating {
                 VStack(spacing: 16) {
                     FireLogo().padding(.top, 8)
+                        .navigationBarBackButtonHidden(true)
+
                     ProgressView("Calculating…")
                         .progressViewStyle(.circular)
                         .padding(.top, 12)
-                    Text("This can take up to 14 minutes")
+                    Text("This can take up to 10 minutes")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Spacer()

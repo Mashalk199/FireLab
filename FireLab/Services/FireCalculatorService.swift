@@ -243,6 +243,7 @@ struct FireCalculatorService {
             .reduce(0, +)
 
         var superGrowth = currentSuperStart
+        // Keeps track of how much the user is currently expected to work
         var workingDays = 0
 
         print("futureBrokerage.count =", futureBrokerage.count)
@@ -259,12 +260,15 @@ struct FireCalculatorService {
             brokerListGrowth = Array(repeating: 0.0, count: futureBrokerage.count)
             superGrowth = currentSuperStart
             workingDays = 0
+            // Flags keep track of whether user retired on brokerage and/or on super
             var retiredBroker = false
             var retiredSuper  = false
 
             var currB = startCurr
             var debtsTemplate = debts // continue accruing mins/interest in Phase B
 
+            /* Runs while the number of day of work is less than the days it takes to reach 67
+                as by then the user will retire, and while the user isn't retired. */
             while (workingDays < days_to_67) && !(retiredBroker && retiredSuper) {
                 // Accrue interest on debts for this day (Phase B accrual)
                 for i in debtsTemplate.indices where debtsTemplate[i].balance > eps {
@@ -288,7 +292,7 @@ struct FireCalculatorService {
                 let brokerCont = brokerProp * fi_left
                 let superCont  = (1.0 - brokerProp) * fi_left
 
-                // contribute and grow future brokerage
+                // Iterates through each investment item and grows them based on how much allocation they have
                 for j in brokerListGrowth.indices {
                     brokerListGrowth[j] += brokerCont * brkWeights[j]
                     brokerListGrowth[j] *= brkFactors[j]
@@ -360,11 +364,15 @@ struct FireCalculatorService {
                 }
 
                 // super post-60 feasibility (compounds to 60 then simulate future days)
+                
+                // how many days until 60 from "now"
                 let remain_to_60 = max(0, days_to_60 - workingDays)
+                // balance AT 60 if user retires now
                 var temp_super   = superGrowth * pow(superFactor, Double(remain_to_60))
                 var retiredSuperDays_tmp = 0
                 var tempDebtsSuper = debtsTemplate
 
+                // Super is also reduced to 0, to see whether retirement is possible
                 while temp_super >= daily_expenses && !retiredSuper {
                     // (optional) inner-day accrual
                     for i in tempDebtsSuper.indices where tempDebtsSuper[i].balance > eps {
@@ -395,7 +403,8 @@ struct FireCalculatorService {
                         retiredSuper = true
                     }
                 }
-
+                /* Ensures if the FI contribution is too low,
+                    then by the time the user reaches 67 they will retire */
                 if workingDays >= days_to_67 {
                     retiredBroker = true
                     retiredSuper  = true
@@ -409,6 +418,10 @@ struct FireCalculatorService {
             var tempCurr = currB
             var tempDebtsGrad = debtsTemplate
 
+            /* Here we see the magnitude of how long the brokerage investment will last the user
+             without stopping the reduction of the value of the brokerage when the user reaches the
+             age of preservation. The value will keep decreasing until it is basically zero. This gives the
+             actual value of how long the investment could fully last*/
             while (portfolioList.reduce(0,+) + tempCurr.reduce(0,+)) >= daily_expenses {
                 // (optional) debt interest per inner day
                 for i in tempDebtsGrad.indices where tempDebtsGrad[i].balance > eps {
@@ -446,6 +459,7 @@ struct FireCalculatorService {
             var temp_super = superGrowth * pow(superFactor, Double(remain_to_60))
             var tempDebtsSuper2 = debtsTemplate
 
+            // This loop gives the true value of how long the super could fully last
             while temp_super >= daily_expenses {
                 // (optional) debt interest per inner day
                 for i in tempDebtsSuper2.indices where tempDebtsSuper2[i].balance > eps {
@@ -473,6 +487,14 @@ struct FireCalculatorService {
             }
 
             let potential_pre60 = max(1, days_to_60 - workingDays) // avoid /0 when retiring at/after 60
+    
+            /* Here we calculate sort of like a "gradient" to see which range we should look to proportion
+             the financial independence contribution towards brokerage funds or super funds to ensure earliest
+             retirement.*/
+             
+             /* The magnitude of how much brokerage growth is achieved in this epoch (eg. totalRetiredDays) compared to the necessary
+             minimum amount (eg. potential_pre60 */
+            
             let pre60_growth_tmp  = Double(totalRetiredDays) / Double(potential_pre60)
             let post60_growth_tmp = Double(totalRetiredSuperDays) / Double(days_during_super)
 
@@ -482,13 +504,20 @@ struct FireCalculatorService {
             print("Epoch \(epochIndex) finished after \(workingDays) days")
             print("  Final debt balances: [\(finalDebts)]")
             print("  Broker prop = \(String(format: "%.3f", brokerProp)), Brokerage total = \(brokerTotal), Super = \(superNow)")
-
+            /* If the ratio of actual retired days before 60 to potential retired days
+            before 60 is less than the ratio of actual retired days before 67 to
+            potential retired days after 60, increase the proportion of funds sent to brokerage */
             if pre60_growth_tmp < post60_growth_tmp {
+                // Here we increase the minimum proportion of the brokerage funds in order to increase
+                // the brokerage proportion, using min-max averaging
                 minProp = brokerProp
             } else {
                 maxProp = brokerProp
             }
             let mid = (minProp + maxProp) / 2.0
+            
+            /* This min-max averaging approach allows us to perform a binary search to find the best
+                Allocation of proportions to be sent to brokerage and super */
             (brokerProp, _) = getProps(mid)
         }
 
