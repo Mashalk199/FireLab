@@ -81,7 +81,7 @@ struct FireResultView: View {
                     }
                 }
             } else {
-                // 2) Debts cleared: show your existing results + a short debt summary
+                // 2) Debts have cleared, show results
                 let years  = r.workingDays / 365
                 let months = (r.workingDays % 365) / 30
 
@@ -93,7 +93,7 @@ struct FireResultView: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
 
-                // New small banner: how long it took to clear debts (if any)
+                // Small banner: how long it took to clear debts (if any)
                 if r.debtClearDays > 0 {
                     let y = r.debtClearDays / 365
                     let m = (r.debtClearDays % 365) / 30

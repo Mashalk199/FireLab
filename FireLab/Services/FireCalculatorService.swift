@@ -48,17 +48,24 @@ struct FireCalculatorService {
      */
     private static func withdrawProRata(_ vec: inout [Double], weights: [Double]?, amount: Double) -> Double {
         guard !vec.isEmpty, amount > 0 else { return amount }
+        // Number of assets
         let n = vec.count
+        // Total value of all assets
         let total = vec.reduce(0,+)
+        // The weights to be used later to reduce each of the assets by.
         let w: [Double]
+        // If weights is provided and is above zero
         if let weights, weights.reduce(0,+) > 0 {
             w = weights
         } else {
+            // If the vector sum is above 0, weight them by values. Otherwise provide a default even weight array.
             w = total > 0 ? vec.map { $0 / total } : Array(repeating: 1.0 / Double(n), count: n)
         }
         let avail = vec.reduce(0,+)
+        // Use the available funds as the total, if smaller than amount
         let take = min(amount, avail)
         if take > 0 {
+            // For each asset, reduce their value by their weight multiplied by the take.
             for i in vec.indices {
                 vec[i] = max(0.0, vec[i] - take * w[i])
             }
@@ -105,22 +112,26 @@ struct FireCalculatorService {
         let futureBrokerage = inputs.investmentItems.filter { $0.type == .etf || $0.type == .bond }
 
         // Weighted nominal hurdle from all future brokerage (for debt avalanche after mins)
-        let sumAlloc = futureBrokerage
-            .map { max(0.0, getDouble($0.allocationPercent)) }
-            .reduce(0, +)
-
         let investHurdleAnnual: Double = {
-            guard !futureBrokerage.isEmpty, sumAlloc > 0 else { return 0.0 }
+            guard !futureBrokerage.isEmpty else { return 0.0 }
             let weighted = futureBrokerage.map {
-                max(0.0, getDouble($0.allocationPercent)) *
-                max(0.0, getDouble($0.expectedReturn) / 100.0)
+                (max(0.0, getDouble($0.allocationPercent)) / 100.0) *
+                (max(0.0, getDouble($0.expectedReturn) / 100.0))
             }.reduce(0, +)
-            return weighted / sumAlloc
+            return weighted
         }()
 
         // -----------------
         // Phase A: debts
         // -----------------
+        
+        /*
+         In this phase, we attempt to get rid of debts that have a higher growth rate than the "InvestHurdleAnnual" or the invest hurdle.
+         InvestHurdleAnnual gets the total expected return that the user is expecting on their future portfolio. If the debt growth
+         is higher than that, then it needs to be paid off as soon as possible to minimise loss and achieve retirement faster.
+         */
+        
+        // Create a debts tuple to avoid using loanItems observableObject inefficiencies
         var debts: [(name: String, balance: Double, annualRate: Double, minDaily: Double, dailyFactor: Double)] =
             inputs.loanItems.map { li in
                 let bal  = max(0.0, getDouble(li.outstandingBalance))
@@ -128,7 +139,8 @@ struct FireCalculatorService {
                 let minM = max(0.0, getDouble(li.minimumPayment))
                 return (li.name, bal, apr, (minM * 12.0) / DAYS_IN_YEAR, dailyDebtFactor(apr))
             }
-
+        
+        // We add a mortgage to the list of debts if the user has selected mortgage as their housing type
         if inputs.housingType == .mortgage {
             let mBal  = max(0.0, getDouble(inputs.outstandingMortgageText))
             let mAPR  = max(0.0, getDouble(inputs.mortgageYearlyInterestText) / 100.0)
@@ -148,20 +160,24 @@ struct FireCalculatorService {
         let startDebtsStr = debts.map { "\($0.name)=\(String(format: "%.2f", $0.balance))" }.joined(separator: ", ")
         print("Initial debts: [\(startDebtsStr)]")
 
+        // Tiny epsilon value
         let eps = 0.005
         let today = Date()
         let ageYearsNow = max(0.0, Double(daysBetween(inputs.dateOfBirth, today)) / DAYS_IN_YEAR)
         let maxDebtDays = Int(max(0.0, (67.0 - ageYearsNow)) * DAYS_IN_YEAR)
 
         var debtDays = 0
+        
+        /* Attempts to eliminate all debts that grow faster than the investHurdle.
+        Once they are eliminated, the user can start investing in assets. */
         if !debts.isEmpty {
             func allCleared() -> Bool { debts.allSatisfy { $0.balance <= eps } }
             while debtDays < maxDebtDays && !allCleared() {
-                // (1) interest accrues
+                // interest accrues
                 for i in debts.indices where debts[i].balance > eps {
                     debts[i].balance *= debts[i].dailyFactor
                 }
-                // (2) pay minimums (highest APR first)
+                // pay minimums (highest APR first)
                 var fi_left = dailyFI
                 debts.sort { $0.annualRate > $1.annualRate }
                 for i in debts.indices {
@@ -171,7 +187,7 @@ struct FireCalculatorService {
                     debts[i].balance -= pay
                     fi_left -= pay
                 }
-                // (3) avalanche toward debts whose APR >= hurdle
+                // avalanche toward debts whose APR >= hurdle
                 if fi_left > 0 {
                     for i in debts.indices where debts[i].balance > eps && debts[i].annualRate >= investHurdleAnnual {
                         let pay = min(fi_left, debts[i].balance)
@@ -210,6 +226,14 @@ struct FireCalculatorService {
         // -----------------
         // Phase B: invest and find retirement (bisection approach)
         // -----------------
+        
+        /*
+         In Phase B we go through the users financial life from now until they retire, and calculate whether retirement is possible for every day.
+         If not, the user works an additional day, otherwise they stop working. Funds are split between brokerage and super investments, so a binary-search bisection
+         is performed to find the most optimal proportions to allocate to brokerage and to superannuation over 10 loops.
+         
+         Since we don't have to worry about the invest hurdle anymore, we can just focus on paying the debt minimums.
+         */
         let workingDaysOffset   = debtDays
         let days_to_60          = max(0, Int((60.0 - ageYearsNow) * DAYS_IN_YEAR) - workingDaysOffset)
         let days_to_67          = max(0, Int((67.0 - ageYearsNow) * DAYS_IN_YEAR) - workingDaysOffset)
@@ -252,7 +276,7 @@ struct FireCalculatorService {
         var epochIndex = 0
         for _ in 1...10 {
             epochIndex += 1
-            // epoch start prints (insert right here)
+            // epoch start prints
             let initDebts = debts.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
             print("\n--- Epoch \(epochIndex) start ---")
 
@@ -267,7 +291,7 @@ struct FireCalculatorService {
             var currB = startCurr
             var debtsTemplate = debts // continue accruing mins/interest in Phase B
 
-            /* Runs while the number of day of work is less than the days it takes to reach 67
+            /* Runs while the number of days of work (workingDays) is less than the days it takes to reach 67
                 as by then the user will retire, and while the user isn't retired. */
             while (workingDays < days_to_67) && !(retiredBroker && retiredSuper) {
                 // Accrue interest on debts for this day (Phase B accrual)
@@ -275,7 +299,7 @@ struct FireCalculatorService {
                     debtsTemplate[i].balance *= debtsTemplate[i].dailyFactor
                 }
 
-                // Stores the current amount of the daily FI contribution left to put towards loans and investments
+                // Tracks the current amount of the daily FI contribution "currently" left to put towards loans and investments.
                 var fi_left = dailyFI
                 // First we will fulfil loan obligations by paying minimums
                 debtsTemplate.sort { $0.annualRate > $1.annualRate }
@@ -288,11 +312,11 @@ struct FireCalculatorService {
                     fi_left -= pay
                 }
 
-                // broker_cont stores the proportion of money of the remainder of the FI contribution to be put towards all brokerage investments. Same with super_cont for super
+                // broker_cont stores the proportion of money of the remainder of the FI contribution to be put towards all brokerage investments. Same with super_cont for superannuation
                 let brokerCont = brokerProp * fi_left
                 let superCont  = (1.0 - brokerProp) * fi_left
 
-                // Iterates through each investment item and grows them based on how much allocation they have
+                // Grow investments: Iterates through each investment item and grows them based on how much allocation they have
                 for j in brokerListGrowth.indices {
                     brokerListGrowth[j] += brokerCont * brkWeights[j]
                     brokerListGrowth[j] *= brkFactors[j]
@@ -319,39 +343,45 @@ struct FireCalculatorService {
 
                 func sumAll() -> Double { portfolioList.reduce(0,+) + tempCurr.reduce(0,+) }
 
-                /* Here we reduce the current value of the brokerage investment to basically zero, to
-                 see whether the user can retire on it until the age of 60 or not. If the user reaches 60
-                 without retiring, the retiredBroker flag remains false, and the brokerage investment
+                /* Here, at the current workingDays, we reduce the current value of the brokerage investment to basically
+                 zero over a period of time, to see whether the user can retire on it until the age of 60 or not.
+                 If the user reaches 60 without retiring, the retiredBroker flag remains false, and the brokerage investment
                  will continue to grow via more working days. */
                 // .reduce(0, +) gets the total sum of the array
                 while sumAll() >= daily_expenses &&
                       !retiredBroker &&
                       (workingDays + retiredDays_tmp < days_to_60) {
 
-                    // 1) GROW (exactly once per inner future day)
+                    // Grow past portfolio and future brokerage
                     for i in tempCurr.indices { tempCurr[i] *= currFactors[i] }
                     for i in portfolioList.indices { portfolioList[i] *= brkFactors[i] }
 
-                    // 2) PAY DEBT MINIMUMS (withdraw only)
+                    // Calculate the total debt minimums due today
                     var dailyDebtDue = 0.0
                     for i in tempDebts.indices where tempDebts[i].balance > eps {
                         tempDebts[i].balance *= tempDebts[i].dailyFactor // optional inner-day accrual
                         dailyDebtDue += min(tempDebts[i].minDaily, tempDebts[i].balance)
                     }
+                    
                     if dailyDebtDue > 0 {
+                        // First pay off debt minimums with past portfolio
                         var leftover = withdrawProRata(&tempCurr, weights: nil, amount: dailyDebtDue)
+                        // Pay remaining with current brokerage investments
                         if leftover > 0 { leftover = withdrawProRata(&portfolioList, weights: brkWeights, amount: leftover) }
                         // reflect paid mins
                         var toReduce = dailyDebtDue - max(0.0, leftover)
+                        // Reduce debt value by how much was paid
                         for i in tempDebts.indices where toReduce > 0 && tempDebts[i].balance > eps {
+                            // If remaining balance is lower than the minimum required payment, only pay outstanding
                             let due = min(tempDebts[i].minDaily, tempDebts[i].balance)
+                            // If the amount left to pay off the debt is lower, subtract only that from the debt
                             let take = min(toReduce, due)
                             tempDebts[i].balance -= take
                             toReduce -= take
                         }
                     }
 
-                    // 3) PAY LIVING EXPENSES (withdraw only)
+                    // Pay living expenses via withdrawal from current brokerage, then from the past portfolio
                     var rem = daily_expenses
                     rem = withdrawProRata(&tempCurr, weights: nil, amount: rem)
                     if rem > 0 { rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: rem) }
@@ -374,14 +404,14 @@ struct FireCalculatorService {
 
                 // Super is also reduced to 0, to see whether retirement is possible
                 while temp_super >= daily_expenses && !retiredSuper {
-                    // (optional) inner-day accrual
                     for i in tempDebtsSuper.indices where tempDebtsSuper[i].balance > eps {
                         tempDebtsSuper[i].balance *= tempDebtsSuper[i].dailyFactor
                     }
-                    // 1) GROW super (once per inner future day)
+                    
+                    // Grow super
                     temp_super *= superFactor
 
-                    // 2) PAY DEBT MINIMUMS from super (withdraw only)
+                    // Pay debt minimums from super
                     var dailyDebtDue = 0.0
                     for d in tempDebtsSuper where d.balance > eps { dailyDebtDue += min(d.minDaily, d.balance) }
                     let pay = min(dailyDebtDue, temp_super)
@@ -394,7 +424,7 @@ struct FireCalculatorService {
                         toReduce -= take
                     }
 
-                    // 3) PAY LIVING EXPENSES from super (withdraw only)
+                    // Pay living expenses from super
                     if temp_super < daily_expenses { break }
                     temp_super -= daily_expenses
 
@@ -423,15 +453,14 @@ struct FireCalculatorService {
              age of preservation. The value will keep decreasing until it is basically zero. This gives the
              actual value of how long the investment could fully last*/
             while (portfolioList.reduce(0,+) + tempCurr.reduce(0,+)) >= daily_expenses {
-                // (optional) debt interest per inner day
                 for i in tempDebtsGrad.indices where tempDebtsGrad[i].balance > eps {
                     tempDebtsGrad[i].balance *= tempDebtsGrad[i].dailyFactor
                 }
-                // 1) GROW once
+                // Grow
                 for i in tempCurr.indices { tempCurr[i] *= currFactors[i] }
                 for i in portfolioList.indices { portfolioList[i] *= brkFactors[i] }
 
-                // 2) PAY debt mins
+                // Pay debt minimums
                 var dailyDebtDue = 0.0
                 for d in tempDebtsGrad where d.balance > eps { dailyDebtDue += min(d.minDaily, d.balance) }
                 if dailyDebtDue > 0 {
@@ -446,7 +475,7 @@ struct FireCalculatorService {
                     }
                 }
 
-                // 3) PAY living expenses
+                // Pay living expenses
                 var rem = withdrawProRata(&tempCurr, weights: nil, amount: daily_expenses)
                 if rem > 0 { rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: rem) }
                 if rem > 1e-9 { break }
@@ -461,13 +490,12 @@ struct FireCalculatorService {
 
             // This loop gives the true value of how long the super could fully last
             while temp_super >= daily_expenses {
-                // (optional) debt interest per inner day
                 for i in tempDebtsSuper2.indices where tempDebtsSuper2[i].balance > eps {
                     tempDebtsSuper2[i].balance *= tempDebtsSuper2[i].dailyFactor
                 }
-                // 1) GROW super
+                // Grow super
                 temp_super *= superFactor
-                // 2) PAY debt mins
+                // Pay debt minimums
                 var dailyDebtDue = 0.0
                 for d in tempDebtsSuper2 where d.balance > eps { dailyDebtDue += min(d.minDaily, d.balance) }
                 let pay = min(dailyDebtDue, temp_super)
@@ -479,7 +507,7 @@ struct FireCalculatorService {
                     tempDebtsSuper2[i].balance -= take
                     toReduce -= take
                 }
-                // 3) PAY living expenses
+                // Pay living expenses
                 if temp_super < daily_expenses { break }
                 temp_super -= daily_expenses
 
@@ -488,25 +516,26 @@ struct FireCalculatorService {
 
             let potential_pre60 = max(1, days_to_60 - workingDays) // avoid /0 when retiring at/after 60
     
-            /* Here we calculate sort of like a "gradient" to see which range we should look to proportion
+            /* Here we calculate something like a "gradient" to see which range we should look to proportion
              the financial independence contribution towards brokerage funds or super funds to ensure earliest
              retirement.*/
              
-             /* The magnitude of how much brokerage growth is achieved in this epoch (eg. totalRetiredDays) compared to the necessary
-             minimum amount (eg. potential_pre60 */
-            
+             /* This variable is the magnitude of how much brokerage growth is achieved in this epoch (eg. totalRetiredDays) compared to the necessary
+             minimum amount (eg. potential_pre60) */
             let pre60_growth_tmp  = Double(totalRetiredDays) / Double(potential_pre60)
             let post60_growth_tmp = Double(totalRetiredSuperDays) / Double(days_during_super)
 
+            // Debugging
             let finalDebts = debtsTemplate.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
             let brokerTotal = String(format: "%.2f", brokerListGrowth.reduce(0,+))
             let superNow    = String(format: "%.2f", superGrowth)
             print("Epoch \(epochIndex) finished after \(workingDays) days")
             print("  Final debt balances: [\(finalDebts)]")
             print("  Broker prop = \(String(format: "%.3f", brokerProp)), Brokerage total = \(brokerTotal), Super = \(superNow)")
-            /* If the ratio of actual retired days before 60 to potential retired days
-            before 60 is less than the ratio of actual retired days before 67 to
-            potential retired days after 60, increase the proportion of funds sent to brokerage */
+            
+            /* If the ratio of "total potential" retired days before 60 compared to the minimum required retired days
+            before 60 is less than the ratio of "total potential" retired days before 67 to
+            minimum required retired days AFTER 60, then increase the proportion of funds sent to brokerage */
             if pre60_growth_tmp < post60_growth_tmp {
                 // Here we increase the minimum proportion of the brokerage funds in order to increase
                 // the brokerage proportion, using min-max averaging
