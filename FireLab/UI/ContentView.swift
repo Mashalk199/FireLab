@@ -18,7 +18,11 @@ struct ContentView: View {
                 NavigationLink(destination: HubView()) {
                     BigButton(text:"Risky FIRE",
                               hint:"Opens financial independence details page")
-                        .padding([.bottom], 25)
+                    .padding([.bottom], 25)
+                }
+                NavigationLink(destination: PastCalculationsView()) {
+                    BigButton(text:"Past calculations", hint:"View your last 3 runs")
+                        .padding(.bottom, 16)
                 }
             }
         }
