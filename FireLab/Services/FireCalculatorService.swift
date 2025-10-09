@@ -205,7 +205,11 @@ struct FireCalculatorService {
         }
 
         // If we hit 67 (or otherwise didn’t clear all debts), stop here.
-        let remainingAfterPhaseA = debts.filter { $0.balance > eps }.map { ($0.name, $0.balance) }
+        //let remainingAfterPhaseA = debts.filter { $0.balance > eps }.map { ($0.name, $0.balance) }
+        
+        let remainingAfterPhaseA: [DebtRemnant] =
+            debts.filter { $0.balance > eps }.map { DebtRemnant(name: $0.name, balance: $0.balance) }
+        
         let endDebtsStr = debts.map { "\($0.name)=\(String(format: "%.2f", $0.balance))" }.joined(separator: ", ")
         print("Phase A finished after \(debtDays) days. Debts now: [\(endDebtsStr)]")
         if !remainingAfterPhaseA.isEmpty {

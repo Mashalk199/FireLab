@@ -25,7 +25,7 @@ final class RetirementData: ObservableObject {
 }
 
 /// This struct stores only the data that is to be displayed in the FireResultView page to the user
-struct Result {
+struct Result: Codable {
     let workingDays: Int
     let retirementDate: Date
     let brokerProp: Double
@@ -36,7 +36,8 @@ struct Result {
 
     // If `remainingDebts` is non-empty we stopped in Phase A (debts not fully cleared).
     let debtClearDays: Int
-    let remainingDebts: [(name: String, balance: Double)]
+    //let remainingDebts: [(name: String, balance: Double)]
+    let remainingDebts: [DebtRemnant]
 }
 
 /** This page displays the results of the retirement calculation performed by the app. It displays the date the user will retire, the value the superannuation and brokerage fund will be at retirement, as well as the monthly contribution that is necessary for both super and brokerage in order to achieve that goal. */

@@ -15,26 +15,26 @@ import FirebaseCore
 
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-
-  func application(_ application: UIApplication,
-
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-
-    FirebaseApp.configure()
-
-    return true
-
-  }
-
+    
+    func application(_ application: UIApplication,
+                     
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        
+        FirebaseApp.configure()
+        
+        return true
+        
+    }
+    
 }
 
 @main
 struct FireLabApp: App {
-//    @StateObject private var inputs = FireInputs()
+    //    @StateObject private var inputs = FireInputs()
     @StateObject private var inputs = FireInputs.mockDefaultConfig()
-
+    
     // register app delegate for Firebase setup
-
+    
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     var body: some Scene {
@@ -42,5 +42,7 @@ struct FireLabApp: App {
             ContentView()
                 .environmentObject(inputs)
         }
+        // to save data
+        .modelContainer(for: [CalcRecord.self])
     }
 }
