@@ -16,7 +16,6 @@ Some assumptions are made for our *limited* financial forecaster:
 - The user will take tax into account when providing their own yearly return percentage.
 - The user never wants to default on any of their loans.
 - The user provide details such that they can pay off their debt before they reach 67. As this is not a completely comprehensive financial planner, if the user wants to ensure they pay off their debts, they will have to set higher minimum monthly payments for their debts.
-- The feature for the PortfolioDetailsView screen wasn't fully thought-out. I thought users should be able to communicate their current assets as well, but didn't realise there are simpler approaches to do them in.
 
 ## Topics
 
