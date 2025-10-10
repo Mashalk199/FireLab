@@ -37,3 +37,22 @@ struct ETFDoc: Identifiable, Codable, Hashable  {
         self.country = country
     }
 }
+
+// added convenience initializer so we can create ETFDoc without Firestore.
+extension ETFDoc {
+    init(id: String = UUID().uuidString,
+         symbol: String,
+         name: String,
+         currency: String,
+         exchange: String,
+         micCode: String,
+         country: String) {
+        self.id = id
+        self.symbol = symbol
+        self.name = name
+        self.currency = currency
+        self.exchange = exchange
+        self.micCode = micCode
+        self.country = country
+    }
+}
