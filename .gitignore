@@ -7,6 +7,7 @@
 Development working out
 # Xcode
 *.xcuserstate
+Secrets.plist
 xcuserdata/
 DerivedData/
 *.xcworkspace
