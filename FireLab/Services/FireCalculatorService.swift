@@ -12,11 +12,23 @@
 import Foundation
 
 struct FireCalculatorService {
+    private let dataService: FinancialDataFetching
+    private let fullForecaster: Forecasting
+    private let shortForecaster: Forecasting
 
-    static let DAYS_IN_YEAR: Double = 365.0
+    init(
+        dataService: FinancialDataFetching = FinancialDataService(),
+        fullForecaster: Forecasting = try! MLForecastService(modelType: .full),
+        shortForecaster: Forecasting = try! MLForecastService(modelType: .short)
+    ) {
+        self.dataService = dataService
+        self.fullForecaster = fullForecaster
+        self.shortForecaster = shortForecaster
+    }
+    let DAYS_IN_YEAR: Double = 365.0
 
     // Nominal daily factor for DEBT interest compounding
-    private static func dailyDebtFactor(_ annualNominal: Double) -> Double {
+    private func dailyDebtFactor(_ annualNominal: Double) -> Double {
         pow(1.0 + max(0.0, annualNominal), 1.0 / DAYS_IN_YEAR)
     }
 
@@ -24,21 +36,21 @@ struct FireCalculatorService {
      Converts annual return to the amount compounded daily.
      - Logic: Since compounding x times requires you to multiply by a return factor to the power of x, we can do the inverse to get the value compounding at a more regular interval.
      */
-    private static func getDailyReturn(_ percentage: Double,_ annual_inflation: Double) -> Double {
+    private func getDailyReturn(_ percentage: Double,_ annual_inflation: Double) -> Double {
         pow(((1.0 + percentage) / (1.0 + annual_inflation)), (1.0/365.0))
     }
 
     /**
      Returns the proportions of the FI contribution to be allocated for brokerage and for super, based on the brokerage proportion provided.
      */
-    private static func getProps(_ proportion: Double) -> (Double, Double) {
+    private func getProps(_ proportion: Double) -> (Double, Double) {
         (proportion, 1.0 - proportion)
     }
 
     /**
      Converts and returns the numerical value inside the string variable storing the user's input, in a double format.
      */
-    private static func getDouble(_ string: String) -> Double {
+    private func getDouble(_ string: String) -> Double {
         Double(string.trimmingCharacters(in: .whitespaces)) ?? 2000
     }
 
@@ -46,7 +58,7 @@ struct FireCalculatorService {
      Withdraw up to `amount` from `vec` in proportion to `weights` (or value-weighted if nil).
      - Returns leftover amount not covered (>= 0).
      */
-    private static func withdrawProRata(_ vec: inout [Double], weights: [Double]?, amount: Double) -> Double {
+    private func withdrawProRata(_ vec: inout [Double], weights: [Double]?, amount: Double) -> Double {
         guard !vec.isEmpty, amount > 0 else { return amount }
         // Number of assets
         let n = vec.count
@@ -76,7 +88,7 @@ struct FireCalculatorService {
     /**
      Returns the number of days in between 2 specific dates
      */
-    private static func daysBetween(_ startDate: Date, _ endDate: Date) -> Int {
+    private func daysBetween(_ startDate: Date, _ endDate: Date) -> Int {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: startDate, to: endDate)
         return components.day ?? 0
@@ -85,17 +97,17 @@ struct FireCalculatorService {
     // MARK: - Public entry point used by the ViewModel
 
     /** Uses all data gathered from user and calculates the retirement result. */
-    static func calculateRetirement(inputs: FireInputs) async throws -> Result {
-
+    func calculateRetirement(inputs: FireInputs) async throws -> Result {
+        
         var daily_expenses: Double = getDouble(inputs.expensesText) / DAYS_IN_YEAR
         let yearlyTotalFI = max(0.0, getDouble(inputs.FIContributionText))   // yearly total
         let monthlyTotal  = yearlyTotalFI / 12.0                              // derive monthly
         let dailyFI       = yearlyTotalFI / DAYS_IN_YEAR                      // derive daily
-
+        
         let annual_inflation: Double = getDouble(inputs.inflationRateText) / 100.0
         let superAnnual: Double      = getDouble(inputs.superGrowthRateText) / 100.0
         let superGrowthRate          = getDailyReturn(superAnnual, annual_inflation)
-
+        
         // explicit branch by user choice
         switch inputs.housingType {
         case .mortgage:
@@ -107,10 +119,10 @@ struct FireCalculatorService {
                 daily_expenses += annualRent / DAYS_IN_YEAR
             }
         }
-
+        
         // Future brokerage bucket = ETFs + Bonds
         let futureBrokerage = inputs.investmentItems.filter { $0.type == .etf || $0.type == .bond }
-
+        
         // Weighted nominal hurdle from all future brokerage (for debt avalanche after mins)
         let investHurdleAnnual: Double = {
             guard !futureBrokerage.isEmpty else { return 0.0 }
@@ -120,7 +132,7 @@ struct FireCalculatorService {
             }.reduce(0, +)
             return weighted
         }()
-
+        
         // -----------------
         // Phase A: debts
         // -----------------
@@ -133,12 +145,12 @@ struct FireCalculatorService {
         
         // Create a debts tuple to avoid using loanItems observableObject inefficiencies
         var debts: [(name: String, balance: Double, annualRate: Double, minDaily: Double, dailyFactor: Double)] =
-            inputs.loanItems.map { li in
-                let bal  = max(0.0, getDouble(li.outstandingBalance))
-                let apr  = max(0.0, getDouble(li.interestRate) / 100.0)
-                let minM = max(0.0, getDouble(li.minimumPayment))
-                return (li.name, bal, apr, (minM * 12.0) / DAYS_IN_YEAR, dailyDebtFactor(apr))
-            }
+        inputs.loanItems.map { li in
+            let bal  = max(0.0, getDouble(li.outstandingBalance))
+            let apr  = max(0.0, getDouble(li.interestRate) / 100.0)
+            let minM = max(0.0, getDouble(li.minimumPayment))
+            return (li.name, bal, apr, (minM * 12.0) / DAYS_IN_YEAR, dailyDebtFactor(apr))
+        }
         
         // We add a mortgage to the list of debts if the user has selected mortgage as their housing type
         if inputs.housingType == .mortgage {
@@ -155,21 +167,21 @@ struct FireCalculatorService {
                 ))
             }
         }
-
+        
         print("--- Phase A start ---")
         let startDebtsStr = debts.map { "\($0.name)=\(String(format: "%.2f", $0.balance))" }.joined(separator: ", ")
         print("Initial debts: [\(startDebtsStr)]")
-
+        
         // Tiny epsilon value
         let eps = 0.005
         let today = Date()
         let ageYearsNow = max(0.0, Double(daysBetween(inputs.dateOfBirth, today)) / DAYS_IN_YEAR)
         let maxDebtDays = Int(max(0.0, (67.0 - ageYearsNow)) * DAYS_IN_YEAR)
-
+        
         var debtDays = 0
         
         /* Attempts to eliminate all debts that grow faster than the investHurdle.
-        Once they are eliminated, the user can start investing in assets. */
+         Once they are eliminated, the user can start investing in assets. */
         if !debts.isEmpty {
             func allCleared() -> Bool { debts.allSatisfy { $0.balance <= eps } }
             while debtDays < maxDebtDays && !allCleared() {
@@ -203,12 +215,12 @@ struct FireCalculatorService {
                 }
             }
         }
-
+        
         // If we hit 67 (or otherwise didn’t clear all debts), stop here.
         //let remainingAfterPhaseA = debts.filter { $0.balance > eps }.map { ($0.name, $0.balance) }
         
         let remainingAfterPhaseA: [DebtRemnant] =
-            debts.filter { $0.balance > eps }.map { DebtRemnant(name: $0.name, balance: $0.balance) }
+        debts.filter { $0.balance > eps }.map { DebtRemnant(name: $0.name, balance: $0.balance) }
         
         let endDebtsStr = debts.map { "\($0.name)=\(String(format: "%.2f", $0.balance))" }.joined(separator: ", ")
         print("Phase A finished after \(debtDays) days. Debts now: [\(endDebtsStr)]")
@@ -226,13 +238,58 @@ struct FireCalculatorService {
                 remainingDebts: remainingAfterPhaseA
             )
         }
-
+        
         // -----------------
-        // Phase B: invest and find retirement (bisection approach)
+        // Phase B: Retrieve financial data and perform machine learning
         // -----------------
         
         /*
-         In Phase B we go through the users financial life from now until they retire, and calculate whether retirement is possible for every day.
+         In Phase B we will fetch financial data from the api using our FinancialDataService and perform
+         machine learning with the MLForecaseService
+         */
+        
+        // Stores indices of all investments that are ETFs and have machine learning calculation enabled
+        var etfIndices: [Int] = inputs.investmentItems.indices.filter { inputs.investmentItems[$0].type == .etf &&
+                                                                        inputs.investmentItems[$0].autoCalc }
+        
+        var etfData: [Int: [Double]] = [:]
+        var symbol: String
+        for i in etfIndices {
+            guard let snapshot = inputs.investmentItems[i].etfSnapshot else {
+                throw FireCalcError.missingSnapshot(name: inputs.investmentItems[i].name)
+            }
+            let symbol = snapshot.symbol
+            etfData[i] = try await dataService.fetchTimeSeries(symbol: symbol, endDate: Date())
+            
+            // Sleep for 8.5 seconds to respect our API rate limits
+            try await Task.sleep(for: .seconds(8.5))
+        }
+        var predReturns: [Int: [Double]] = [:]
+        // Filter out ETFs with fewer than 60 data points before applying machine learning
+        etfIndices = etfIndices.filter { i in
+            if let data = etfData[i] {
+                return data.count >= 60
+            } else {
+//                print("No data for \(inputs.investmentItems[i].name)")
+                return false
+            }
+        }
+        // Here we apply machine learning and store the data into our predReturns dictionary
+        for i in etfIndices {
+            if let prices = etfData[i], prices.count >= 250 {
+                predReturns[i] = try fullForecaster.predictReturns(closes: prices, steps: Int(DAYS_IN_YEAR) * 2)
+            } else if let prices = etfData[i], prices.count >= 60 {
+                predReturns[i] = try shortForecaster.predictReturns(closes: prices, steps: Int(DAYS_IN_YEAR) * 2)
+            }
+        }
+        
+        
+        // -----------------
+        // Phase C: invest and find retirement (bisection approach)
+        // -----------------
+        
+        /*
+         In Phase C we go through the users financial life from now until they retire, and calculate whether retirement is possible for every day.
          If not, the user works an additional day, otherwise they stop working. Funds are split between brokerage and super investments, so a binary-search bisection
          is performed to find the most optimal proportions to allocate to brokerage and to superannuation over 10 loops.
          
@@ -260,7 +317,7 @@ struct FireCalculatorService {
         let superFactor = superGrowthRate
 
         // Bisection state
-        var (brokerProp, superProp) = getProps(0.5)
+        var (brokerProp, _) = getProps(0.5)
         var minProp = 0.0, maxProp = 1.0
 
         // Epoch seeds
@@ -293,12 +350,12 @@ struct FireCalculatorService {
             var retiredSuper  = false
 
             var currB = startCurr
-            var debtsTemplate = debts // continue accruing mins/interest in Phase B
+            var debtsTemplate = debts // continue accruing mins/interest in Phase C
 
             /* Runs while the number of days of work (workingDays) is less than the days it takes to reach 67
                 as by then the user will retire, and while the user isn't retired. */
             while (workingDays < days_to_67) && !(retiredBroker && retiredSuper) {
-                // Accrue interest on debts for this day (Phase B accrual)
+                // Accrue interest on debts for this day (Phase C accrual)
                 for i in debtsTemplate.indices where debtsTemplate[i].balance > eps {
                     debtsTemplate[i].balance *= debtsTemplate[i].dailyFactor
                 }
@@ -323,7 +380,15 @@ struct FireCalculatorService {
                 // Grow investments: Iterates through each investment item and grows them based on how much allocation they have
                 for j in brokerListGrowth.indices {
                     brokerListGrowth[j] += brokerCont * brkWeights[j]
-                    brokerListGrowth[j] *= brkFactors[j]
+                    // We only use machine learning predictions for the first 2 years, after that we rely on the user's provided return
+                    if workingDays <= Int(DAYS_IN_YEAR) * 2 && etfIndices.contains(j) {
+                        if let returns = predReturns[j], workingDays < returns.count {
+                            brokerListGrowth[j] *= (1 + returns[workingDays] / 100.0)
+                        }
+                    }
+                    else {
+                        brokerListGrowth[j] *= brkFactors[j]
+                    }
                 }
 
                 // Grow super by 1 day of investments
@@ -346,6 +411,7 @@ struct FireCalculatorService {
                 var tempDebts       = debtsTemplate
 
                 func sumAll() -> Double { portfolioList.reduce(0,+) + tempCurr.reduce(0,+) }
+                
 
                 /* Here, at the current workingDays, we reduce the current value of the brokerage investment to basically
                  zero over a period of time, to see whether the user can retire on it until the age of 60 or not.
@@ -358,7 +424,18 @@ struct FireCalculatorService {
 
                     // Grow past portfolio and future brokerage
                     for i in tempCurr.indices { tempCurr[i] *= currFactors[i] }
-                    for i in portfolioList.indices { portfolioList[i] *= brkFactors[i] }
+                    for j in portfolioList.indices {
+                        /* The time since the simulation beginning is given by workingDays +
+                        retiredDays_tmp, the amount of days we've currently attempted retiring on. */
+                        if workingDays + retiredDays_tmp <= Int(DAYS_IN_YEAR) * 2 && etfIndices.contains(j) {
+                            if let returns = predReturns[j], workingDays + retiredDays_tmp < returns.count {
+                                portfolioList[j] *= (1 + returns[workingDays + retiredDays_tmp] / 100.0)
+                            }
+                        }
+                        else {
+                            portfolioList[j] *= brkFactors[j]
+                        }
+                    }
 
                     // Calculate the total debt minimums due today
                     var dailyDebtDue = 0.0
@@ -462,8 +539,18 @@ struct FireCalculatorService {
                 }
                 // Grow
                 for i in tempCurr.indices { tempCurr[i] *= currFactors[i] }
-                for i in portfolioList.indices { portfolioList[i] *= brkFactors[i] }
-
+                for j in portfolioList.indices {
+                    /* The time since the simulation beginning is given by workingDays +
+                    retiredDays_tmp, the amount of days we've currently attempted retiring on. */
+                    if workingDays + totalRetiredDays <= Int(DAYS_IN_YEAR) * 2 && etfIndices.contains(j) {
+                        if let returns = predReturns[j], workingDays + totalRetiredDays < returns.count {
+                            portfolioList[j] *= (1 + returns[workingDays + totalRetiredDays] / 100.0)
+                        }
+                    }
+                    else {
+                        portfolioList[j] *= brkFactors[j]
+                    }
+                }
                 // Pay debt minimums
                 var dailyDebtDue = 0.0
                 for d in tempDebtsGrad where d.balance > eps { dailyDebtDue += min(d.minDaily, d.balance) }
@@ -580,7 +667,17 @@ struct FireCalculatorService {
             brokerageBalanceAtRetirement: brokerageAtRet,
             superBalanceAtRetirement: superAt60,
             debtClearDays: debtDays,
-            remainingDebts: [] // empty => Phase B completed
+            remainingDebts: [] // empty => Phase C completed
         )
+    }
+}
+enum FireCalcError: LocalizedError {
+    case missingSnapshot(name: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .missingSnapshot(let name):
+            return "Missing ETF snapshot for investment: \(name)"
+        }
     }
 }

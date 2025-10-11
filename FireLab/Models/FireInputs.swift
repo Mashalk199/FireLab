@@ -55,9 +55,10 @@ struct InvestmentItem: Identifiable, Hashable, Codable {
 
     // Convenience
     var isETF: Bool { type == .etf }
+    var autoCalc: Bool
 
     private enum CodingKeys: String, CodingKey {
-        case name, type, allocationPercent, expectedReturn, etfSnapshot
+        case name, type, allocationPercent, expectedReturn, etfSnapshot, autoCalc
     }
 }
 
@@ -120,21 +121,24 @@ extension FireInputs {
                 type: .etf,
                 allocationPercent: "60",
                 expectedReturn: "4.0",
-                etfSnapshot: adra
+                etfSnapshot: adra,
+                autoCalc: true
             ),
             InvestmentItem(
                 name: "FEMS — EM Small Cap AlphaDEX",
                 type: .etf,
                 allocationPercent: "30",
                 expectedReturn: "4.5",
-                etfSnapshot: fems
+                etfSnapshot: fems,
+                autoCalc: false
             ),
             InvestmentItem(
                 name: "RTH — VanEck Retail",
                 type: .etf,
                 allocationPercent: "10",
                 expectedReturn: "2",
-                etfSnapshot: rth
+                etfSnapshot: rth,
+                autoCalc: true
             )
         ]
 

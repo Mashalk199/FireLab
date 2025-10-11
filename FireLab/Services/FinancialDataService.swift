@@ -7,7 +7,11 @@
 
 import Foundation
 
-class ETFDataService {
+protocol FinancialDataFetching {
+    func fetchTimeSeries(symbol: String, endDate: Date) async throws -> [Double]
+}
+
+class FinancialDataService: FinancialDataFetching {
     private let apiKey: String
     
     init() {
@@ -43,7 +47,7 @@ class ETFDataService {
             URLQueryItem(name: "apikey", value: apiKey),
             URLQueryItem(name: "symbol", value: symbol),
             URLQueryItem(name: "interval", value: "1day"),
-            URLQueryItem(name: "outputsize", value: "500"),
+            URLQueryItem(name: "outputsize", value: "501"),
             URLQueryItem(name: "format", value: "JSON"),
             URLQueryItem(name: "end_date", value: dateStr) 
         ]

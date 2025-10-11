@@ -67,7 +67,8 @@ final class AddInvestmentViewModel: ObservableObject {
                 type: tab == 0 ? .etf : .bond,
                 allocationPercent: "",
                 expectedReturn: expected,
-                etfSnapshot: snapshot
+                etfSnapshot: snapshot,
+                autoCalc: autoCalc
             )
         )
 
