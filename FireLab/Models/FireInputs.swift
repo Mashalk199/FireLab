@@ -55,11 +55,13 @@ struct InvestmentItem: Identifiable, Hashable, Codable {
 
     // Convenience
     var isETF: Bool { type == .etf }
+    var autoCalc: Bool
 
     private enum CodingKeys: String, CodingKey {
-        case name, type, allocationPercent, expectedReturn, etfSnapshot
+        case name, type, allocationPercent, expectedReturn, etfSnapshot, autoCalc
     }
 }
+
 
 extension FireInputs {
     /// Seeds inputs to a sensible default configuration for previews / debug.
@@ -84,11 +86,60 @@ extension FireInputs {
         i.weeklyRentText = "0"
         i.housingDetailsSet = .set
 
-        // Future investments (ETFs + Bonds) — allocations sum to 100%
+        // Real ETF snapshots (ADRA, FEMS, RTH)
+        let adra = ETFDoc(
+            symbol: "ADRA",
+            name: "Invesco BLDRS Asia 50 ADR Index Fund",
+            currency: "USD",
+            exchange: "NASDAQ",
+            micCode: "XNMS",
+            country: "United States"
+        )
+
+        let fems = ETFDoc(
+            symbol: "FEMS",
+            name: "First Trust Emerging Markets Small Cap AlphaDEX Fund",
+            currency: "USD",
+            exchange: "NASDAQ",
+            micCode: "XNMS",
+            country: "United States"
+        )
+
+        let rth = ETFDoc(
+            symbol: "RTH",
+            name: "VanEck Retail ETF",
+            currency: "USD",
+            exchange: "NYSE",
+            micCode: "ARCX",
+            country: "United States"
+        )
+
+        // Future investments (ETFs + Bonds) - allocations sum to 100%. Hook snapshots into investment items.
         i.investmentItems = [
-            InvestmentItem(name: "AU Shares",   type: .etf,  allocationPercent: "60", expectedReturn: "4.0", etfSnapshot: nil),
-            InvestmentItem(name: "Global exAU", type: .etf,  allocationPercent: "30", expectedReturn: "4.5", etfSnapshot: nil),
-            InvestmentItem(name: "Bonds",       type: .bond, allocationPercent: "10", expectedReturn: "2.0", etfSnapshot: nil),
+            InvestmentItem(
+                name: "ADRA — Invesco BLDRS Asia 50 ADR",
+                type: .etf,
+                allocationPercent: "60",
+                expectedReturn: "4.0",
+                etfSnapshot: adra,
+                autoCalc: true
+            ),
+            InvestmentItem(
+                name: "FEMS — EM Small Cap AlphaDEX",
+                type: .etf,
+                allocationPercent: "30",
+                expectedReturn: "4.5",
+                etfSnapshot: fems,
+                autoCalc: false
+            ),
+            InvestmentItem(
+                name: "RTH — VanEck Retail",
+                type: .etf,
+                allocationPercent: "10",
+                expectedReturn: "2",
+                etfSnapshot: rth,
+                autoCalc: true
+            )
         ]
 
         // Current brokerage + super

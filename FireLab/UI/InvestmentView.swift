@@ -224,9 +224,30 @@ struct InvestmentAllocationCard : View {
 #Preview {
     let inputs = FireInputs()
     inputs.investmentItems = [
-        InvestmentItem(name: "VDHG", type: .etf,  allocationPercent: "", expectedReturn: "3"),
-        InvestmentItem(name: "AusGov Bonds", type: .bond, allocationPercent: "", expectedReturn: "3"),
-        InvestmentItem(name: "DB Crude Oil Long Exchange Traded Fund", type: .bond, allocationPercent: "50", expectedReturn: "3")
+        InvestmentItem(
+            name: "VDHG",
+            type: .etf,
+            allocationPercent: "60",
+            expectedReturn: "4.0",
+            etfSnapshot: nil,
+            autoCalc: true
+        ),
+        InvestmentItem(
+            name: "FEMS — EM Small Cap AlphaDEX",
+            type: .etf,
+            allocationPercent: "30",
+            expectedReturn: "4.5",
+            etfSnapshot:  nil,
+            autoCalc: false
+        ),
+        InvestmentItem(
+            name: "RTH — VanEck Retail",
+            type: .etf,
+            allocationPercent: "10",
+            expectedReturn: "2",
+            etfSnapshot: nil,
+            autoCalc: false
+        )
     ]
 
     return NavigationStack {

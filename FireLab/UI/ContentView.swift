@@ -13,6 +13,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             VStack {
+                
                 FireLogo()
                     .padding([.bottom], 160)
                 NavigationLink(destination: HubView()) {

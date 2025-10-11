@@ -5,6 +5,9 @@
 # Ignore all GoogleService-Info.plist files
 **/GoogleService-Info.plist
 Development working out
+Secrets.plist
+
+
 # Xcode
 *.xcuserstate
 Secrets.plist
@@ -13,6 +16,7 @@ DerivedData/
 *.xcworkspace
 GoogleService-Info.plist
 **/GoogleService-Info.plist
+
 
 # Swift Package Manager
 .build/

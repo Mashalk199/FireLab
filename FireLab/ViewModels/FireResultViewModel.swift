@@ -17,6 +17,10 @@ final class FireResultViewModel: ObservableObject {
 
     // Keep a strong hold to reuse the same result screen without recalculating
     private var lastInputsSnapshot: FireInputs?
+    private let calculator: FireCalculatorService
+    init(calculator: FireCalculatorService = FireCalculatorService()) {
+        self.calculator = calculator
+    }
 
     func run(inputs: FireInputs) {
         // Don’t rerun if we already calculated for the same object instance and have a result
@@ -30,12 +34,12 @@ final class FireResultViewModel: ObservableObject {
             let start = Date()
             do {
                 // run the heavy work off the main thread
-                let r = try await FireCalculatorService.calculateRetirement(inputs: inputs)
+                let r = try await calculator.calculateRetirement(inputs: inputs)
 
                 // publish
                 self.result = r
             } catch {
-                self.errorText = "Calculation failed."
+                self.errorText = error.localizedDescription
             }
             self.isCalculating = false
 

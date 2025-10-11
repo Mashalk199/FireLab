@@ -89,10 +89,9 @@ struct AddInvestmentView: View {
                     .disabled(vm.autoCalc)
 
                     Toggle(
-                        "Let FireLab calculate expected yearly return (upcoming feature)",
+                        "Enable machine learning for return predictions",
                         isOn: $vm.autoCalc
                     )
-                    .disabled(true)
                     .padding(.horizontal)
                     .accessibilityLabel("Let FireLab handle yearly return")
                     .accessibilityValue(vm.autoCalc ? "true" : "false")
