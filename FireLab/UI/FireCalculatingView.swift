@@ -34,6 +34,7 @@ struct FireCalculatingView: View {
                 // Hand off to the result view — no recalculation happens here
                 FireResultView(retirementData: retirementData, vm: vm, initialResult: res)
                     .task {
+                        retirementData.brokerageGrowthData = res.brokerageSeries
                         Persistence.saveLatest3(context: modelContext, inputs: inputs, result: res)
                     }
             } else {

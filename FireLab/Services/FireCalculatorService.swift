@@ -235,7 +235,8 @@ struct FireCalculatorService {
                 brokerageBalanceAtRetirement: 0.0,
                 superBalanceAtRetirement: 0.0,
                 debtClearDays: debtDays,
-                remainingDebts: remainingAfterPhaseA
+                remainingDebts: remainingAfterPhaseA,
+                brokerageSeries: []
             )
         }
         
@@ -335,8 +336,10 @@ struct FireCalculatorService {
         print("startCurr (existing brokerage) =", startCurr.reduce(0,+))
 
         var epochIndex = 0
+        var series: [Double] = []
         for _ in 1...10 {
             epochIndex += 1
+            series.removeAll()
             // epoch start prints
             let initDebts = debts.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
             print("\n--- Epoch \(epochIndex) start ---")
@@ -399,6 +402,7 @@ struct FireCalculatorService {
                 for i in currB.indices { currB[i] *= currFactors[i] }
 
                 workingDays += 1
+                series.append( brokerListGrowth.reduce(0,+) + currB.reduce(0,+) )
 
                 if workingDays % 365 == 0 {
                     let hb = debtsTemplate.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
@@ -667,7 +671,8 @@ struct FireCalculatorService {
             brokerageBalanceAtRetirement: brokerageAtRet,
             superBalanceAtRetirement: superAt60,
             debtClearDays: debtDays,
-            remainingDebts: [] // empty => Phase C completed
+            remainingDebts: [], // empty => Phase C completed
+            brokerageSeries: series
         )
     }
 }

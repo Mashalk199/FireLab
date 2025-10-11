@@ -20,7 +20,8 @@ final class RetirementData: ObservableObject {
         brokerageBalanceAtRetirement: 0,
         superBalanceAtRetirement: 0,
         debtClearDays: 0,
-        remainingDebts: []
+        remainingDebts: [],
+        brokerageSeries: []
     )
 }
 
@@ -38,6 +39,8 @@ struct Result: Codable {
     let debtClearDays: Int
     //let remainingDebts: [(name: String, balance: Double)]
     let remainingDebts: [DebtRemnant]
+    // for graph
+    let brokerageSeries: [Double]
 }
 
 /** This page displays the results of the retirement calculation performed by the app. It displays the date the user will retire, the value the superannuation and brokerage fund will be at retirement, as well as the monthly contribution that is necessary for both super and brokerage in order to achieve that goal. */
