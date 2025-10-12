@@ -1,0 +1,37 @@
+{
+  "configurations" : [
+    {
+      "id" : "C0F654C4-9852-4205-BD67-79C5BB9F93E5",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:FireLab.xcodeproj",
+      "identifier" : "CA3638BA2E546A5600F8E067",
+      "name" : "FireLab"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:FireLab.xcodeproj",
+        "identifier" : "CA3638C72E546A5700F8E067",
+        "name" : "FireLabTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:FireLab.xcodeproj",
+        "identifier" : "CA3638D12E546A5700F8E067",
+        "name" : "FireLabUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

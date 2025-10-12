@@ -39,6 +39,11 @@ struct FireCalculatorService {
     private func getDailyReturn(_ percentage: Double,_ annual_inflation: Double) -> Double {
         pow(((1.0 + percentage) / (1.0 + annual_inflation)), (1.0/365.0))
     }
+    
+    // for test
+    func _test_dailyReturn(annualReturn: Double, inflation: Double) -> Double {
+        pow(((1.0 + annualReturn) / (1.0 + inflation)), (1.0/365.0))
+    }
 
     /**
      Returns the proportions of the FI contribution to be allocated for brokerage and for super, based on the brokerage proportion provided.
@@ -83,6 +88,11 @@ struct FireCalculatorService {
             }
         }
         return amount - take
+    }
+    
+    // for test
+    func _test_withdraw(_ vec: inout [Double], weights: [Double]?, amount: Double) -> Double {
+        withdrawProRata(&vec, weights: weights, amount: amount)
     }
 
     /**
