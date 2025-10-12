@@ -17,8 +17,54 @@ Some assumptions are made for our *limited* financial forecaster:
 - The user never wants to default on any of their loans.
 - The user provide details such that they can pay off their debt before they reach 67. As this is not a completely comprehensive financial planner, if the user wants to ensure they pay off their debts, they will have to set higher minimum monthly payments for their debts.
 
+
 ## Topics
 
-### <!--@START_MENU_TOKEN@-->Group<!--@END_MENU_TOKEN@-->
+### Models
 
-- <!--@START_MENU_TOKEN@-->``Symbol``<!--@END_MENU_TOKEN@-->
+- ``ETFDoc``
+- ``FinancialData``
+- ``FireInputs``
+- ``DebtRemnant``
+
+### Services
+
+- ``FinancialDataService``
+- ``FireCalculatorService``
+- ``MLForecastService``
+- ``Persistence``
+
+
+### UI
+
+- ``AddInvestmentView``
+- ``AddLoanView``
+- ``AddPortfolioItemView``
+- <doc:Components>
+- ``ContentView``
+- ``ETFSearchView``
+- ``FireCalculatingView``
+- ``FireGraphsView``
+- ``FireLogo``
+- ``FireResultView``
+- ``HousingDetailsView``
+- ``HubView``
+- ``InvestmentView``
+- ``LoanDetailsView``
+- ``PastCalculationsView``
+- ``PortfolioDetailsView``
+
+### ViewModels
+
+- ``AddInvestmentViewModel``
+- ``AddLoanViewModel``
+- ``AddPortfolioItemViewModel``
+- ``ETFSearchViewModel``
+- ``FireGraphsViewModel``
+- ``FireResultViewModel``
+- ``HousingDetailsViewModel``
+- ``HubViewModel``
+- ``InvestmentViewModel``
+- ``LoanDetailsViewModel``
+- ``PastCalculationsViewModel``
+- ``PortfolioDetailsViewModel``

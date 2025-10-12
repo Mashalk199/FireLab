@@ -47,11 +47,12 @@ final class HousingDetailsViewModel: ObservableObject {
         return true
     }
 }
-
+/// Reprsents the type of housing the user is living in
 enum HousingType: String {
     case mortgage, rent
 }
 
+/// Represents whether the housing details for the user has been set or not
 enum HousingDetailsSet: String {
    case unset, set
 }

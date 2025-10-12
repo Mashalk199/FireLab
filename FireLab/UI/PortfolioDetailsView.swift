@@ -6,7 +6,9 @@
 //
 
 import SwiftUI
-
+/**
+ This screen allows a user to enter details of their current portfolio, which is the assets they currently have. This is different to the investments the user will invest into in the future.
+ */
 struct PortfolioDetailsView: View {
     @EnvironmentObject var inputs: FireInputs
     @Environment(\.dismiss) private var dismiss

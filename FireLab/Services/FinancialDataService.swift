@@ -11,6 +11,9 @@ protocol FinancialDataFetching {
     func fetchTimeSeries(symbol: String, endDate: Date) async throws -> [Double]
 }
 
+/** This service provides a simple interface which allows a user to pass a symbol value and retrieve an array of Double values
+ representing daily ETF prices
+ */
 class FinancialDataService: FinancialDataFetching {
     private let apiKey: String
     

@@ -82,7 +82,9 @@ struct FireEmblem: View {
     }
 }
 
-//logo
+/**
+ This is the logo of the FireLab app, which is created with a custom layout
+ */
 struct FireLogo: View {
     var title: String = "FireLab"
     var emblemSize: CGFloat = 44

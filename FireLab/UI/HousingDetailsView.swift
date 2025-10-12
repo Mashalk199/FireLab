@@ -6,7 +6,9 @@
 //
 
 import SwiftUI
-
+/**
+ This screen displays an interface for a user to enter their housing details, whether it be rental or mortgage details.
+ */
 struct HousingDetailsView: View {
     @EnvironmentObject var inputs: FireInputs
     @StateObject private var vm = HousingDetailsViewModel()
@@ -82,7 +84,6 @@ struct HousingDetailsView: View {
             Spacer()
             HStack(spacing: 14) {
                 Button {
-                    inputs.housingDetailsSet = .unset
                     dismiss()
                 } label: {
                     SmallButtonView(
