@@ -19,6 +19,7 @@ enum ForecastModelType {
     case short      // 60-lookback model
 }
 
+/// Credit also goes to ChatGPT for building and training the Tensorflow LSTMs
 final class MLForecastService: Forecasting {
     private let modelType: ForecastModelType
     private let model: MLModel

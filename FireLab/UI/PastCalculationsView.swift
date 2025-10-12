@@ -13,34 +13,33 @@ import SwiftData
 struct PastCalculationsView: View {
     @EnvironmentObject var inputs: FireInputs
     @Environment(\.modelContext) private var modelContext
-    @State private var records: [CalcRecord] = []
-    
+    // @State private var records: [CalcRecord] = []
+    @StateObject private var vm = PastCalculationsViewModel()
+
     var body: some View {
         VStack {
             FireLogo().padding(.top, 8)
             // Case 1: No previous records
-            if records.isEmpty {
+            if vm.rows.isEmpty {
                 Text("No past calculations yet").foregroundStyle(.secondary).padding()
             } else {
                 // Case 2: Display saved records
                 List {
-                    ForEach(records, id: \.id) { r in
+                    ForEach(vm.rows, id: \.id) { row in
                         // Decode both inputs and results from each record
-                        if let (snap, res) = Persistence.decode(record: r) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(r.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                        .font(.headline)
-                                    Text("Retires in \(res.workingDays/365)y \( (res.workingDays%365)/30)m · Broker \(Int(res.brokerProp*100))%")
-                                        .font(.subheadline).foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                // Reuse the inputs snapshot
-                                Button("Reuse inputs") {
-                                    inputs.apply(snapshot: snap)
-                                }
-                                .buttonStyle(.bordered)
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(row.title)
+                                    .font(.headline)
+                                Text(row.subtitle)
+                                    .font(.subheadline).foregroundStyle(.secondary)
                             }
+                            Spacer()
+                            // Reuse the inputs snapshot
+                            Button("Reuse inputs") {
+                                vm.reuse(row: row, into: inputs)
+                            }
+                            .buttonStyle(.bordered)
                         }
                     }
                 }
@@ -48,6 +47,9 @@ struct PastCalculationsView: View {
             }
         }
         // Automatically load the top 3 results when view appears
-        .task { records = Persistence.fetchTop3(context: modelContext) }
+        .task {
+            vm.attach(context: modelContext)                      
+            await vm.load()
+        }
     }
 }

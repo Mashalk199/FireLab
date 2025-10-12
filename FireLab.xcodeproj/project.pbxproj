@@ -18,6 +18,7 @@
 		CA833DEE2E99BAF4002C3A43 /* lstm_60.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = CA833DED2E99BAF4002C3A43 /* lstm_60.mlpackage */; };
 		CA833DEF2E99BAF4002C3A43 /* full_lstm.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = CA833DEC2E99BAF4002C3A43 /* full_lstm.mlpackage */; };
 		CA9C48482E6FE09700B603A9 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = CA9C48472E6FE08E00B603A9 /* .gitignore */; };
+		CABE90F02E9B5606003F666F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = CABE90EF2E9B5606003F666F /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 		CA833DEC2E99BAF4002C3A43 /* full_lstm.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = full_lstm.mlpackage; sourceTree = "<group>"; };
 		CA833DED2E99BAF4002C3A43 /* lstm_60.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = lstm_60.mlpackage; sourceTree = "<group>"; };
 		CA9C48472E6FE08E00B603A9 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		CABE90EF2E9B5606003F666F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -111,6 +113,7 @@
 		CA3638B22E546A5600F8E067 = {
 			isa = PBXGroup;
 			children = (
+				CABE90EF2E9B5606003F666F /* README.md */,
 				CA9C48472E6FE08E00B603A9 /* .gitignore */,
 				CA3638BD2E546A5600F8E067 /* FireLab */,
 				CA3638CB2E546A5700F8E067 /* FireLabTests */,
@@ -262,6 +265,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA9C48482E6FE09700B603A9 /* .gitignore in Resources */,
+				CABE90F02E9B5606003F666F /* README.md in Resources */,
 				CA553DED2E8CF525001FD2D8 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -450,7 +454,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = RRSMQTY3TH;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FireLab/Info.plist;
@@ -479,7 +483,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = RRSMQTY3TH;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FireLab/Info.plist;

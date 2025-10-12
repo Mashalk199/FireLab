@@ -26,6 +26,8 @@ struct FireCalculatorService {
         self.shortForecaster = shortForecaster
     }
     let DAYS_IN_YEAR: Double = 365.0
+    // Add an approximate “days per month” step for monthly sampling
+    private let DAYS_PER_MONTH: Int = 30
 
     // Nominal daily factor for DEBT interest compounding
     private func dailyDebtFactor(_ annualNominal: Double) -> Double {
@@ -347,7 +349,7 @@ struct FireCalculatorService {
 
         var epochIndex = 0
         var series: [Double] = []
-        for _ in 1...10 {
+        for _ in 1...8 {
             epochIndex += 1
             series.removeAll()
             // epoch start prints
@@ -412,7 +414,11 @@ struct FireCalculatorService {
                 for i in currB.indices { currB[i] *= currFactors[i] }
 
                 workingDays += 1
-                series.append( brokerListGrowth.reduce(0,+) + currB.reduce(0,+) )
+                
+                // Append to series monthly during the working stage
+                if workingDays % DAYS_PER_MONTH == 0 {
+                    series.append( brokerListGrowth.reduce(0,+) + currB.reduce(0,+) )
+                }
 
                 if workingDays % 365 == 0 {
                     let hb = debtsTemplate.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
@@ -450,7 +456,7 @@ struct FireCalculatorService {
                             portfolioList[j] *= brkFactors[j]
                         }
                     }
-
+                    
                     // Calculate the total debt minimums due today
                     var dailyDebtDue = 0.0
                     for i in tempDebts.indices where tempDebts[i].balance > eps {
@@ -584,6 +590,14 @@ struct FireCalculatorService {
                 var rem = withdrawProRata(&tempCurr, weights: nil, amount: daily_expenses)
                 if rem > 0 { rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: rem) }
                 if rem > 1e-9 { break }
+
+                // Record monthly progress during depletion (to age 60) using the live depletion state
+                let currentDay = workingDays + totalRetiredDays
+                if currentDay % DAYS_PER_MONTH == 0 && currentDay <= days_to_60 {
+                    series.append( portfolioList.reduce(0,+) + tempCurr.reduce(0,+) )
+                }
+                // Stop collecting beyond age 60 for the “retired stage” series
+                if currentDay >= days_to_60 { break }
 
                 totalRetiredDays += 1
             }
