@@ -7,7 +7,9 @@
 
 import SwiftUI
 import SwiftData
-
+/**
+ This is an intermediary screen which lets the user know a long calculation is happening and they should wait for the retirement results
+ */
 struct FireCalculatingView: View {
     @EnvironmentObject var inputs: FireInputs
     @StateObject var vm: FireResultViewModel

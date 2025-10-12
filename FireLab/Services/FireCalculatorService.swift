@@ -10,7 +10,11 @@
 //  FireLab
 
 import Foundation
-
+/**
+ In this service class we perform the retirement simulation for the app user. We define some helper methods, and we
+ use the FireInputs environment to gather all user input data, convert them into appropriate data structures and use them in
+ mathematical calculations and machine learning.
+ */
 struct FireCalculatorService {
     private let dataService: FinancialDataFetching
     private let fullForecaster: Forecasting
@@ -266,7 +270,7 @@ struct FireCalculatorService {
                                                                         inputs.investmentItems[$0].autoCalc }
         
         var etfData: [Int: [Double]] = [:]
-        var symbol: String
+
         for i in etfIndices {
             guard let snapshot = inputs.investmentItems[i].etfSnapshot else {
                 throw FireCalcError.missingSnapshot(name: inputs.investmentItems[i].name)
@@ -700,6 +704,7 @@ struct FireCalculatorService {
         )
     }
 }
+/// Custom exception for when an ETFDoc is missing from the FireInputs object
 enum FireCalcError: LocalizedError {
     case missingSnapshot(name: String)
 

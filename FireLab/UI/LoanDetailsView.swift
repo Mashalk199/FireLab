@@ -6,7 +6,9 @@
 //
 
 import SwiftUI
-
+/**
+ Here the user can add any and all loans that they have outstanding balances in, and can specify the loan responsibilities like the minimum monthly payment
+ */
 struct LoanDetailsView: View {
     @EnvironmentObject var inputs: FireInputs
     @Environment(\.dismiss) private var dismiss

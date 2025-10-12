@@ -20,7 +20,7 @@ struct SamplePoint: Identifiable {
     let value: Double
 }
 
-// MARK: view
+/// This view displays the interactive graphs for the financial journey of the user. The graphs have gestures and recieve data from the FireResults view.
 struct FireGraphsView: View {
     @ObservedObject var retirementData: RetirementData
     

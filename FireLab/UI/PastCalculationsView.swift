@@ -5,11 +5,10 @@
 //  Created by YIHAN  on 7/10/2025.
 //
 
-/// Displays a list of the user's past 3 FIRE calculations stored using SwiftData. Allows the user to reapply a previous input snapshot to rerun calculations.
 
 import SwiftUI
 import SwiftData
-
+/// Displays a list of the user's past 3 FIRE calculations stored using SwiftData. Allows the user to reapply a previous input snapshot to rerun calculations.
 struct PastCalculationsView: View {
     @EnvironmentObject var inputs: FireInputs
     @Environment(\.modelContext) private var modelContext

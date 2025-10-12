@@ -19,7 +19,11 @@ enum ForecastModelType {
     case short      // 60-lookback model
 }
 
-/// Credit also goes to ChatGPT for building and training the Tensorflow LSTMs
+/**
+ This service provides an interface which allows a user to pass an array of sequential daily ETF data and obtain an autoregressed
+ sequence of return predictions for a certain number of time-steps.
+ Credit also goes to ChatGPT for building and training the Tensorflow LSTMs
+ */
 final class MLForecastService: Forecasting {
     private let modelType: ForecastModelType
     private let model: MLModel

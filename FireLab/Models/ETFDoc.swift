@@ -8,6 +8,7 @@
 
 import FirebaseFirestore
 
+/// This is the data type of each real-life ETF fetched from the Firebase Firestore.
 struct ETFDoc: Identifiable, Codable, Hashable  {
     let id: String
     let symbol: String
