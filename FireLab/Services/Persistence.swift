@@ -11,7 +11,6 @@
 import Foundation
 import SwiftData
 
-// MARK: - SwiftData Model
 @Model
 final class CalcRecord {
     @Attribute(.unique) var id: UUID
@@ -28,7 +27,6 @@ final class CalcRecord {
 }
 
 
-// MARK: - DTOs for snapshotting FireInputs
 // Simplified version of LoanItem to make it Codable
 struct LoanItemDTO: Codable {
     var name: String
@@ -57,8 +55,6 @@ struct FireInputsSnapshot: Codable {
     var loanItems: [LoanItemDTO]
 }
 
-
-// MARK: - FireInputs <-> Snapshot bridges
 extension FireInputs {
     // Converts the current live inputs into a Codable snapshot for savin
     func toSnapshot() -> FireInputsSnapshot {
@@ -112,7 +108,6 @@ extension FireInputs {
     }
 }
 
-// MARK: - Persistence API
 // A static helper for encoding, decoding and maintaining only the latest 3 saved records.
 enum Persistence {
     private static let enc: JSONEncoder = {
@@ -156,4 +151,26 @@ enum Persistence {
               let res  = try? dec.decode(Result.self, from: record.resultJSON) else { return nil }
         return (snap, res)
     }
+    
+    struct SnapshotFile: Codable {
+        let generatedAt: Date
+        let inputs: FireInputsSnapshot
+        let result: Result
+    }
+
+    static func encodeSnapshot(record: CalcRecord) -> Data? {
+            guard let (inputs, result) = decode(record: record) else { return nil }
+            let file = SnapshotFile(generatedAt: .now, inputs: inputs, result: result)
+            let e = JSONEncoder()
+            e.outputFormatting = [.prettyPrinted, .sortedKeys]
+            e.dateEncodingStrategy = .iso8601
+            return try? e.encode(file)
+        }
+
+        static func decodeSnapshot(_ data: Data) -> (FireInputsSnapshot, Result)? {
+            let d = JSONDecoder()
+            d.dateDecodingStrategy = .iso8601
+            guard let file = try? d.decode(SnapshotFile.self, from: data) else { return nil }
+            return (file.inputs, file.result)
+        }
 }

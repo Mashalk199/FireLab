@@ -7,6 +7,12 @@
 
 import SwiftUI
 import Foundation
+import SwiftData
+
+private struct URLBox: Identifiable {
+    let id = UUID()
+    let url: URL
+}
 
 /// This object stores the data that is to be either displayed in the FireResultView screen or sent to the FireGraphsView page.
 final class RetirementData: ObservableObject {
@@ -34,7 +40,7 @@ struct Result: Codable {
     let monthlySuperContribution: Double
     let brokerageBalanceAtRetirement: Double
     let superBalanceAtRetirement: Double
-
+    
     // If `remainingDebts` is non-empty we stopped in Phase A (debts not fully cleared).
     let debtClearDays: Int
     //let remainingDebts: [(name: String, balance: Double)]
@@ -48,24 +54,28 @@ struct FireResultView: View {
     @ObservedObject var retirementData: RetirementData
     @ObservedObject var vm: FireResultViewModel
     let initialResult: Result
-
+    
+    @State private var shareURL: URLBox? = nil
+    @State private var previewURL: URLBox? = nil
+    @State private var showPreview = false
+    
     var body: some View {
         let r = initialResult
-
+        
         VStack(spacing: 20) {
             FireLogo().padding(.top, 8)
-
+            
             // 1) If debts remain, tell the user why we stopped and what’s left.
             if !r.remainingDebts.isEmpty {
                 Text("We stopped early because debts weren’t fully cleared.")
                     .foregroundStyle(.red)
                     .font(.headline)
-
+                
                 let yearsDebt = r.debtClearDays / 365
                 let monthsDebt = (r.debtClearDays % 365) / 30
                 Text("Time spent servicing debts so far: \(yearsDebt) years \(monthsDebt) months")
                     .foregroundStyle(.secondary)
-
+                
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Remaining debts:")
                         .font(.headline)
@@ -74,11 +84,28 @@ struct FireResultView: View {
                     }
                 }
                 .padding(.top, 8)
-
+                
                 Spacer()
-
+                
                 // Keep the buttons
                 HStack(spacing: 14) {
+                    Button {
+                        do { let url = try buildPDFURL(for: r)
+                            shareURL = URLBox(url: url) } catch { print("Share failed:", error) }
+                    } label: {
+                        SmallButtonView(
+                            text: "Share",
+                            fontSize: 20,
+                            icon: "square.and.arrow.up",
+                            width: 150,
+                            fgColor: .white,
+                            bgColor: .blue,
+                            border: .blue
+                        )
+                    }
+                    .accessibilityLabel("Share retirement calculation results")
+                    .accessibilityHint("Enable system sharing")
+                    .buttonStyle(.plain)
                     SmallNavButton(text: "Home", icon: "arrow.clockwise.circle",
                                    width: 150, fgColor: .orange, bgColor: .white, border: .black, hint: "Returns to home page") {
                         ContentView()
@@ -88,15 +115,15 @@ struct FireResultView: View {
                 // 2) Debts have cleared, show results
                 let years  = r.workingDays / 365
                 let months = (r.workingDays % 365) / 30
-
+                
                 Text("\(years) years")
                     .font(.system(size: 44, weight: .bold))
                     .padding(.top, 10)
-
+                
                 Text("\(months) Months\nuntil you reach financial independence")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
-
+                
                 // Small banner: how long it took to clear debts (if any)
                 if r.debtClearDays > 0 {
                     let y = r.debtClearDays / 365
@@ -105,41 +132,124 @@ struct FireResultView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 Text("Retirement date: \(r.retirementDate.formatted(date: .abbreviated, time: .omitted))")
                     .foregroundStyle(.secondary)
-
+                
                 VStack(spacing: 6) {
                     Text("Brokerage at retirement: $\(String(format: "%.0f", r.brokerageBalanceAtRetirement))")
-
+                    
                     Text("Super at retirement: $\(String(format: "%.0f", r.superBalanceAtRetirement))")
                 }
                 .font(.headline)
-
+                
                 VStack(spacing: 4) {
                     Text("Proportion to Brokerage: \(String(format: "%.2f%%", r.brokerProp * 100))")
                         .foregroundStyle(.secondary)
-
+                    
                     Text("Recommended Monthly Contribution To Brokerage: $\(String(format: "%.0f", r.monthlyBrokerContribution))")
-
+                    
                     Text("Recommended Monthly Contribution To Super: $\(String(format: "%.0f", r.monthlySuperContribution))")
                 }
                 .frame(width: 350)
-
+                
                 Spacer()
-
+                
                 HStack(spacing: 14) {
                     SmallNavButton(text: "View Graphs", icon: "arrow.right.circle",
-                                   width: 150, fgColor: .white, bgColor: .orange, border: .black.opacity(0.2), hint: "Opens graphs page") {
+                                   width: 150, fgColor: .white, bgColor: .orange,
+                                   border: .black.opacity(0.2), hint: "Opens graphs page") {
                         FireGraphsView(retirementData: retirementData)
                     }
+                    
                     SmallNavButton(text: "Home", icon: "arrow.clockwise.circle",
                                    width: 150, fgColor: .orange, bgColor: .white, border: .black, hint: "Returns to home page") {
                         ContentView()
                     }
                 }
+                
+                HStack {
+                    Button {
+                        do { let url = try buildPDFURL(for: r)
+                            shareURL = URLBox(url: url) } catch { print("Share failed:", error) }
+                    } label: {
+                        SmallButtonView(text: "Share", fontSize: 20, icon: "square.and.arrow.up",
+                                        width: 150, fgColor: .white, bgColor: .blue, border: .blue, height: 54)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Share retirement calculation results")
+                    .accessibilityHint("Open iOS share sheet")
+                }
+                
+                HStack {
+                    Button("Preview PDF") {
+                        do { let url = try buildPDFURL(for: r)
+                            previewURL = URLBox(url: url)
+                            showPreview = true }
+                        catch { print("Preview failed:", error) }
+                    }
+                    .buttonStyle(.bordered)
+                }
                 .padding(.bottom, 12)
             }
         }
+        
+        .sheet(item: $shareURL) { box in
+            ShareSheet(activityItems: [box.url])
+        }
+        
+        .sheet(isPresented: $showPreview) {
+            if let box = previewURL {
+                QuickLookPreview(url: box.url)
+            }
+        }
+    }
+    
+    //Merge PDF content
+    private func summaryText(for r: Result) -> String {
+        let df = DateFormatter()
+        df.dateStyle = .medium
+        df.timeStyle = .none
+        
+        let debts: String = {
+            if r.remainingDebts.isEmpty { return "None" }
+            return r.remainingDebts.map { "\($0.name)=\(Int($0.balance))" }.joined(separator: ", ")
+        }()
+        
+        return """
+        FIRE Calculation Summary
+        ------------------------
+        Retirement date: \(df.string(from: r.retirementDate))
+        Working days required: \(r.workingDays)
+        
+        Monthly Contributions:
+          • Brokerage: $\(Int(r.monthlyBrokerContribution))
+          • Superannuation: $\(Int(r.monthlySuperContribution))
+        
+        Balances at Retirement:
+          • Brokerage: $\(Int(r.brokerageBalanceAtRetirement))
+          • Super (at age 60): $\(Int(r.superBalanceAtRetirement))
+        
+        Debt repayment duration: \(r.debtClearDays) days
+        Remaining debts: \(debts)
+        
+        Generated by FireLab
+        """
+    }
+    
+    //Generate PDF
+    private func buildPDFURL(for r: Result) throws -> URL {
+        let fileName = "FireLab-\(Date.now.formatted(.dateTime.year().month().day().hour().minute())).pdf"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        
+        let data = PDFGenerator.makePDF(from: summaryText(for: r))
+        
+        if FileManager.default.fileExists(atPath: url.path) {
+            try? FileManager.default.removeItem(at: url)
+        }
+        
+        try data.write(to: url, options: .atomic)
+        return url
     }
 }
