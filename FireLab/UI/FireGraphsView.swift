@@ -29,43 +29,19 @@ struct FireGraphsView: View {
     var currentDate = Date()
     var x_years: [String] = []
     
-    // Stable base date so previews don't shift every recompute
-    private let baseDate: Date = {
-        let calendar = Calendar.current
-        let now = Date()
-        let comps = calendar.dateComponents([.year, .month], from: now)
-        let startOfMonth = calendar.date(from: comps) ?? now
-        return calendar.startOfDay(for: startOfMonth)
-    }()
-    private let cal = Calendar.current
-    private let minSpanSeconds: TimeInterval = 28 * 24 * 3600
+    // ViewModel (MVVM)
+    @StateObject private var vm: FireGraphsViewModel
     
-    // MARK: interaction
-    @State private var selectedIndex: Int?
+    init(retirementData: RetirementData) {
+        self._retirementData = ObservedObject(wrappedValue: retirementData)
+        _vm = StateObject(wrappedValue: FireGraphsViewModel(retirementData: retirementData))
+    }
+    
+    // MARK: interaction (now lives in VM)
     @GestureState private var isPressing = false
-    @State private var xDomain: ClosedRange<Date>?
-    @State private var pinchStartDomain: ClosedRange<Date>?
     
     // MARK: derived series
-    var brokerageSeries: [SamplePoint] {
-        return retirementData.brokerageGrowthData.enumerated().compactMap { i, v in
-            guard let date = cal.date(byAdding: .month, value: i, to: baseDate) else { return nil }
-            return SamplePoint(date: date, value: v)
-        }
-    }
-    
-    // map Date back to index
-    private func index(for date: Date) -> Int {
-        let months = cal.dateComponents([.month], from: baseDate, to: date).month ?? 0
-        return max(0, min(months, retirementData.brokerageGrowthData.count - 1))
-    }
-    
-    // current cursor position
-    private var cursorValueText: String {
-        guard let idx = selectedIndex, idx < retirementData.brokerageGrowthData.count else { return "-" }
-        let v = retirementData.brokerageGrowthData[idx]
-        return String(format: "%.0f", v)
-    }
+    var brokerageSeries: [SamplePoint] { vm.brokerageSeries }
     
     // MARK: body
     var body: some View {
@@ -118,7 +94,7 @@ struct FireGraphsView: View {
                 )
             }
             // cursor
-            if let idx = selectedIndex, idx < brokerageSeries.count {
+            if let idx = vm.selectedIndex, idx < brokerageSeries.count {
                 let p = brokerageSeries[idx]
                 RuleMark(x: .value("Cursor", p.date))
                     .lineStyle(.init(lineWidth: 1.5, dash: [4, 3]))
@@ -127,7 +103,7 @@ struct FireGraphsView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(p.date.formatted(date: .abbreviated, time: .omitted))
                                 .font(.caption).foregroundStyle(.secondary)
-                            Text("$\(cursorValueText)")
+                            Text("$\(vm.cursorValueText)")
                                 .font(.callout).bold()
                         }
                         .padding(8)
@@ -149,8 +125,8 @@ struct FireGraphsView: View {
             }
         }
         .chartLegend(.hidden)
-        .chartYScale(domain: visibleYDomain())
-        .chartXScale(domain: xDomain ?? defaultXDomain())
+        .chartYScale(domain: vm.visibleYDomain())
+        .chartXScale(domain: vm.xDomain ?? vm.defaultXDomain())
         .frame(height: 320)
     }
     
@@ -165,8 +141,8 @@ struct FireGraphsView: View {
             // double-click to reset the range and clear the cursor
                 .onTapGesture(count: 2) {
                     withAnimation(.easeInOut) {
-                        xDomain = defaultXDomain()
-                        selectedIndex = nil
+                        vm.xDomain = vm.defaultXDomain()
+                        vm.selectedIndex = nil
                     }
                 }
             
@@ -174,22 +150,22 @@ struct FireGraphsView: View {
                 .simultaneousGesture(
                     MagnificationGesture()
                         .onChanged { scale in
-                            if pinchStartDomain == nil {
-                                pinchStartDomain = xDomain ?? defaultXDomain()
+                            if vm.pinchStartDomain == nil {
+                                vm.pinchStartDomain = vm.xDomain ?? vm.defaultXDomain()
                             }
-                            guard let base = pinchStartDomain else { return }
+                            guard let base = vm.pinchStartDomain else { return }
                             
-                            let full = defaultXDomain()
+                            let full = vm.defaultXDomain()
                             let span = base.upperBound.timeIntervalSince(base.lowerBound)
                             let mid  = base.lowerBound.addingTimeInterval(span / 2)
                             
-                            let newHalf = max(minSpanSeconds/2, span / (2 * scale))
+                            let newHalf = max(vm.minSpanSeconds/2, span / (2 * scale))
                             let proposed = mid.addingTimeInterval(-newHalf)...mid.addingTimeInterval(+newHalf)
                             
-                            xDomain = clamped(proposed, to: full)
+                            vm.xDomain = vm.clamped(proposed, to: full)
                         }
                         .onEnded { _ in
-                            pinchStartDomain = nil
+                            vm.pinchStartDomain = nil
                         }
                 )
             
@@ -205,16 +181,16 @@ struct FireGraphsView: View {
                             switch value {
                             case .first(true):
                                 let loc = CGPoint(x: geo.size.width/2, y: 0)
-                                if let d: Date = proxy.value(atX: loc.x) { selectedIndex = index(for: d) }
+                                if let d: Date = proxy.value(atX: loc.x) { vm.selectedIndex = vm.index(for: d) }
                             case .second(true, let drag):
                                 if let drag {
                                     let origin = geo[proxy.plotAreaFrame].origin
                                     let locX = drag.location.x - origin.x
                                     if let d: Date = proxy.value(atX: locX) {
-                                        selectedIndex = index(for: d)
+                                        vm.selectedIndex = vm.index(for: d)
                                         UIAccessibility.post(
                                             notification: .announcement,
-                                            argument: "Value \(cursorValueText) dollars"
+                                            argument: "Value \(vm.cursorValueText) dollars"
                                         )
                                     }
                                 }
@@ -223,60 +199,11 @@ struct FireGraphsView: View {
                         }
                         .onEnded { _ in
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                selectedIndex = nil
+                                vm.selectedIndex = nil
                             }
                         }
                 )
         }
-    }
-    
-    // MARK: axis domains
-    private func visibleYDomain() -> ClosedRange<Double> {
-        let dom = xDomain ?? defaultXDomain()
-        let valuesInRange = brokerageSeries
-            .filter { dom.contains($0.date) }
-            .map { $0.value }
-        
-        guard let minV = valuesInRange.min(),
-              let maxV = valuesInRange.max() else {
-            return niceYDomain()
-        }
-        
-        let pad = max(1, (maxV - minV) * 0.08)
-        return max(0, minV - pad)...(maxV + pad)
-    }
-    
-    func defaultXDomain() -> ClosedRange<Date> {
-        guard let first = brokerageSeries.first?.date,
-              let last  = brokerageSeries.last?.date else {
-            let d0 = baseDate
-            let d1 = cal.date(byAdding: .month, value: 1, to: d0) ?? d0.addingTimeInterval(30*24*3600)
-            return d0...d1
-        }
-        return first...last
-    }
-    
-    func niceYDomain() -> ClosedRange<Double> {
-        guard let minV = retirementData.brokerageGrowthData.min(),
-              let maxV = retirementData.brokerageGrowthData.max() else {
-            return 0...1
-        }
-        let pad = max(1, (maxV - minV) * 0.08)
-        return max(0, minV - pad)...(maxV + pad)
-    }
-    
-    private func clamped(_ range: ClosedRange<Date>,
-                         to limits: ClosedRange<Date>) -> ClosedRange<Date> {
-        let lower = max(range.lowerBound, limits.lowerBound)
-        let upper = min(range.upperBound, limits.upperBound)
-        if upper.timeIntervalSince(lower) < minSpanSeconds {
-            let mid = lower.addingTimeInterval(upper.timeIntervalSince(lower) / 2)
-            let half = minSpanSeconds / 2
-            let l = max(limits.lowerBound, mid.addingTimeInterval(-half))
-            let r = min(limits.upperBound, mid.addingTimeInterval(+half))
-            return l...r
-        }
-        return lower...upper
     }
 }
 
