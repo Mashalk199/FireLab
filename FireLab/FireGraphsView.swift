@@ -8,7 +8,7 @@
 ///Display a line chart showing "brokerage account value over time" + area gradient.
 ///interaction:
 ///(1) Long press -> drag: Display and move vertical cursors, read out corresponding dates and values
-///(2) Pinch-to-zoom: Scales X-axis range centred on current visible area (supports minimum 14-day span, automatically snaps to full range).
+///(2) Pinch-to-zoom: Scales X-axis range centred on current visible area (supports minimum 1-month span, automatically snaps to full range).
 ///(3) Double-tap to reset
 
 import SwiftUI
@@ -30,9 +30,15 @@ struct FireGraphsView: View {
     var x_years: [String] = []
     
     // Stable base date so previews don't shift every recompute
-    private let baseDate = ISO8601DateFormatter().date(from: "2025-01-01T00:00:00Z")!
+    private let baseDate: Date = {
+        let calendar = Calendar.current
+        let now = Date()
+        let comps = calendar.dateComponents([.year, .month], from: now)
+        let startOfMonth = calendar.date(from: comps) ?? now
+        return calendar.startOfDay(for: startOfMonth)
+    }()
     private let cal = Calendar.current
-    private let minSpanSeconds: TimeInterval = 14 * 24 * 3600
+    private let minSpanSeconds: TimeInterval = 28 * 24 * 3600
     
     // MARK: interaction
     @State private var selectedIndex: Int?
@@ -43,15 +49,15 @@ struct FireGraphsView: View {
     // MARK: derived series
     var brokerageSeries: [SamplePoint] {
         return retirementData.brokerageGrowthData.enumerated().compactMap { i, v in
-            guard let date = cal.date(byAdding: .day, value: i, to: baseDate) else { return nil }
+            guard let date = cal.date(byAdding: .month, value: i, to: baseDate) else { return nil }
             return SamplePoint(date: date, value: v)
         }
     }
     
     // map Date back to index
     private func index(for date: Date) -> Int {
-        let days = cal.dateComponents([.day], from: baseDate, to: date).day ?? 0
-        return max(0, min(days, retirementData.brokerageGrowthData.count - 1))
+        let months = cal.dateComponents([.month], from: baseDate, to: date).month ?? 0
+        return max(0, min(months, retirementData.brokerageGrowthData.count - 1))
     }
     
     // current cursor position
@@ -244,7 +250,8 @@ struct FireGraphsView: View {
         guard let first = brokerageSeries.first?.date,
               let last  = brokerageSeries.last?.date else {
             let d0 = baseDate
-            return d0...d0.addingTimeInterval(24*3600)
+            let d1 = cal.date(byAdding: .month, value: 1, to: d0) ?? d0.addingTimeInterval(30*24*3600)
+            return d0...d1
         }
         return first...last
     }
