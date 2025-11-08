@@ -6,21 +6,41 @@
 //
 
 import Foundation
-
+import SwiftUI
 @MainActor
 final class AddInvestmentViewModel: ObservableObject {
     // moved from View
     @Published var tab: Int = 0   // 0: ETF, 1: Bond
-    @Published var name = ""
-    @Published var expected = ""
+    @Published var bondName = ""
+    @Published var expectedBondRet = ""
+    @Published var expectedEtfRet = ""
     @Published var autoCalc = false
     @Published var errorText: String?
+    
 
-    let currETF: SelectedETF
+    var currETF: SelectedETF
+    let editItem: InvestmentItem?
+
     private var inputs: FireInputs?
 
-    init(currETF: SelectedETF) {
+    init(currETF: SelectedETF, editItem: InvestmentItem?) {
         self.currETF = currETF
+        self.editItem = editItem
+        
+        /* Below the item-to-edit's values are prefilled, otherwise if
+        it doesn't exist then default values are used */
+        if self.editItem?.type == .etf {
+            self.tab = 0
+            self.expectedEtfRet = self.editItem?.expectedReturn ?? ""
+
+        }
+        else if self.editItem?.type == .bond {
+            self.tab = 1
+            self.expectedBondRet = self.editItem?.expectedReturn ?? ""
+            self.bondName = self.editItem?.name ?? ""
+
+        }
+        self.autoCalc = self.editItem?.autoCalc ?? false
     }
 
     func attach(inputs: FireInputs) {
@@ -34,18 +54,24 @@ final class AddInvestmentViewModel: ObservableObject {
                 errorText = "Please select an ETF"
                 return false
             }
+            guard let expectedETFReturn = Double(expectedEtfRet),
+                  expectedETFReturn <= 100, expectedETFReturn > 0 else {
+                errorText = "Enter 100 >= Expected Return > 0"
+                return false
+            }
         } else {
-            if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if bondName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 errorText = "Please create a bond name"
+                return false
+            }
+            guard let expectedBondReturn = Double(expectedBondRet),
+                  expectedBondReturn <= 100, expectedBondReturn > 0 else {
+                errorText = "Enter 100 >= Expected Return > 0"
                 return false
             }
         }
 
-        guard let expectedETFReturn = Double(expected),
-              expectedETFReturn <= 100, expectedETFReturn > 0 else {
-            errorText = "Enter 100 >= Expected Return > 0"
-            return false
-        }
+        
 
         errorText = nil
         return true
@@ -57,20 +83,32 @@ final class AddInvestmentViewModel: ObservableObject {
 
         let displayName = tab == 0
             ? (currETF.selectedETF?.name ?? "ETF")
-            : (name.isEmpty ? "Bond #1" : name)
+            : (bondName.isEmpty ? "Bond #1" : bondName)
 
         let snapshot = (tab == 0) ? currETF.selectedETF : nil
 
-        inputs.investmentItems.append(
-            InvestmentItem(
-                name: displayName,
-                type: tab == 0 ? .etf : .bond,
-                allocationPercent: "",
-                expectedReturn: expected,
-                etfSnapshot: snapshot,
-                autoCalc: autoCalc
+        if let editItem, let idx = inputs.investmentItems.firstIndex(where: { $0.id == editItem.id }) {
+
+                // Update existing item in place
+                inputs.investmentItems[idx].name = displayName
+                inputs.investmentItems[idx].type = (tab == 0 ? .etf : .bond)
+                inputs.investmentItems[idx].expectedReturn = (tab == 0 ? expectedEtfRet : expectedBondRet)
+                inputs.investmentItems[idx].etfSnapshot = snapshot
+                inputs.investmentItems[idx].autoCalc = autoCalc
+
+        }
+        else {
+            inputs.investmentItems.append(
+                InvestmentItem(
+                    name: displayName,
+                    type: tab == 0 ? .etf : .bond,
+                    allocationPercent: "",
+                    expectedReturn: tab == 0 ? expectedEtfRet : expectedBondRet,
+                    etfSnapshot: snapshot,
+                    autoCalc: autoCalc
+                )
             )
-        )
+        }
 
         currETF.selectedETF = nil
         return true

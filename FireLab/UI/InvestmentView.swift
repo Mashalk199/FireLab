@@ -7,13 +7,34 @@
 
 import SwiftUI
 import UIKit
+
+// Here we define a gesture enum to determine the position of each investment card during a gesture.
+
+enum DragState {
+    case inactive
+    case dragging(translation: CGSize)
+    
+    var translation: CGSize {
+        switch self {
+        case .inactive:
+            return .zero
+        case .dragging(let translation):
+            return translation
+        }
+    }
+}
+
 /** In this screen, the user is able to input all of their investment preferences and details. They can specify the investment diversity they will want their portfolio to follow, how much they want to allocate to certain investments with certain growth rates. */
 struct InvestmentView: View {
     @EnvironmentObject var inputs: FireInputs
     @StateObject private var vm = InvestmentViewModel() // added VM
+    @StateObject private var currETF = SelectedETF()
     @State private var goNext = false
     @AccessibilityFocusState private var errorFocused: Bool
+    @State private var itemToEdit = InvestmentItem()
+    @State private var goToEdit = false
 
+    
     var body: some View {
         VStack(spacing: 16) {
             FireLogo().padding(.top, 8)
@@ -64,9 +85,18 @@ struct InvestmentView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.horizontal)
                 VStack(spacing: 20) {
+                    // TODO: When the user slides the card to the left, let it slide 20% through at full opacity, display a trash can on the right, and when the drag gesture is over, the card will automatically delete with a transition towards the leading edge
                     ForEach($inputs.investmentItems) { $item in
-                        InvestmentAllocationCard(item: $item, itemList: $inputs.investmentItems)
+                        InvestmentAllocationCard(item: $item,
+                                                 itemList: $inputs.investmentItems,
+                                                 onEdit: {
+                            
+                                                        itemToEdit = item
+                                                        goToEdit = true
+                                                         })
                     }
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+
                     
                     if inputs.investmentItems.isEmpty {
                         Text("No investments yet").foregroundStyle(.secondary)
@@ -84,7 +114,7 @@ struct InvestmentView: View {
                             bgColor: .orange,
                             border: .orange,
                             hint: "Add an investment to your list") {
-                    AddInvestmentView(currETF: SelectedETF())
+                    AddInvestmentView(currETF: currETF, editItem: nil)
                 }
                 Button {
                     if vm.validate() { goNext = true } // moved validation
@@ -109,6 +139,11 @@ struct InvestmentView: View {
             )
             .environmentObject(inputs) // keep passing the same inputs
         }
+        .navigationDestination(isPresented: $goToEdit) {
+            // We know which item is being edited via editingItemID
+            AddInvestmentView(currETF: currETF, editItem: itemToEdit)
+                .environmentObject(inputs)
+        }
         .overlay(alignment: .bottomTrailing) {
             ZStack {
                 Circle()
@@ -120,6 +155,8 @@ struct InvestmentView: View {
                     Text("\(vm.totalPercent, specifier: "%.1f")%") // uses VM
                         .font(.system(size: 13))
                 }
+                .animation(.easeInOut, value: vm.totalPercent)
+
             }
             .padding(.trailing, 20)
             .padding(.bottom, 180)
@@ -146,6 +183,14 @@ struct InvestmentView: View {
 struct InvestmentAllocationCard : View {
     @Binding var item: InvestmentItem
     @Binding var itemList: [InvestmentItem]
+//    @ObservedObject var currETF: SelectedETF
+    var onEdit: () -> Void
+    @GestureState private var dragState = DragState.inactive
+    
+    var maxDragWidth: Int = 70
+    // To make animation look better, we use this additional offset variable
+    @State private var offsetX: CGFloat = 0
+    
     var body: some View {
         RoundedRectangle(cornerRadius: 20)
             .fill(Color(.lightGray))
@@ -154,7 +199,10 @@ struct InvestmentAllocationCard : View {
                 // Add .destructive annotation as per accessibility HIG
                 Button(role: .destructive) {
                     if let idx = itemList.firstIndex(of: item) {
-                        itemList.remove(at: idx)
+                        // Adds animation for specifically when the card is removed
+                        withAnimation(.easeInOut) {
+                            itemList.remove(at: idx)
+                        }
                     }
                 } label: {
                     Image(systemName: "x.circle")
@@ -218,6 +266,39 @@ struct InvestmentAllocationCard : View {
                     .accessibilityLabel(Text("\(item.name), Allocation"))
                 
             )
+            .offset(x: offsetX + dragState.translation.width)
+            .gesture(
+                DragGesture()
+                    .updating($dragState, body: {(value, state, _) in
+                        if abs(value.translation.width) < CGFloat(maxDragWidth) {
+                            state = .dragging(translation: value.translation)
+                        }
+                        else if value.translation.width > 0 {
+                            state = .dragging(translation: CGSize(width: maxDragWidth, height: 0))
+                        }
+                        else {
+                            state = .dragging(translation: CGSize(width: -maxDragWidth, height: 0))
+                        }
+                            
+                    })
+                    .onEnded({ (value) in
+                        if value.translation.width <= -CGFloat(maxDragWidth) {
+                            
+                            // Makes sure the card doesn't reset to its original non-offsetted position when the gesture ends (when the dragState resets on the gestures end)
+                            offsetX = -CGFloat(maxDragWidth)
+                            if let idx = itemList.firstIndex(of: item) {
+                                // Adds animation for specifically when the card is removed
+                                withAnimation(.easeInOut) {
+                                    itemList.remove(at: idx)
+                                }
+                            }
+                        }
+                        else if value.translation.width >= CGFloat(maxDragWidth) {
+                            onEdit()
+                        }
+
+                    })
+                )
     }
 }
 

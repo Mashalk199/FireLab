@@ -22,12 +22,14 @@ struct AddInvestmentView: View {
     @EnvironmentObject var inputs: FireInputs
 
     @StateObject private var vm: AddInvestmentViewModel
+    @ObservedObject private var currETF: SelectedETF
 
     @AccessibilityFocusState private var errorFocused: Bool
 
     // take SelectedETF and pass it to the VM
-    init(currETF: SelectedETF) {
-        _vm = StateObject(wrappedValue: AddInvestmentViewModel(currETF: currETF))
+    init(currETF: SelectedETF, editItem: InvestmentItem?) {
+        self._currETF = ObservedObject(wrappedValue: currETF)
+        _vm = StateObject(wrappedValue: AddInvestmentViewModel(currETF: currETF, editItem: editItem))
     }
 
     var body: some View {
@@ -65,6 +67,13 @@ struct AddInvestmentView: View {
 
             if vm.tab == 0 {
                 VStack(spacing: 12) {
+                    if let selectedETF = currETF.selectedETF {
+                        VStack {
+                            HStack {
+                                Text("Symbol: \(selectedETF.symbol)")
+                            }
+                        }
+                    }
                     SmallNavButton(
                         text: "Select ETF",
                         fontSize: 18,
@@ -76,17 +85,16 @@ struct AddInvestmentView: View {
                         hint: "Add an investment to your list",
                         height: 60
                     ) {
-                        ETFSearchView(currETF: vm.currETF)
+                        ETFSearchView(currETF: currETF)
                     }
                     .padding([.top, .bottom], 20)
 
+                    //TODO: convert FieldRow and Toggle to common Components component
                     FieldRow(
                         label: "Expected Yearly After-Tax Return",
-                        text: $vm.expected,
+                        text: $vm.expectedEtfRet,
                         placeholder: "%"
                     )
-                    .opacity(vm.autoCalc ? 0.4 : 1)
-                    .disabled(vm.autoCalc)
 
                     Toggle(
                         "Enable machine learning for return predictions",
@@ -100,12 +108,12 @@ struct AddInvestmentView: View {
                 VStack(spacing: 12) {
                     FieldRow(
                         label: "Bond Name (Optional)",
-                        text: $vm.name,
+                        text: $vm.bondName,
                         placeholder: "Bond #1"
                     )
                     FieldRow(
                         label: "Expected Yearly After-Tax Return",
-                        text: $vm.expected,
+                        text: $vm.expectedBondRet,
                         placeholder: "%"
                     )
                 }
@@ -202,8 +210,19 @@ struct RoundedFillButton: View {
 }
 
 #Preview {
-    NavigationStack {
-        AddInvestmentView(currETF: SelectedETF())
-            .environmentObject(FireInputs())
+    let inputs = FireInputs.mockDefaultConfig()   // or FireInputs()
+    let sel = SelectedETF()
+    sel.selectedETF = ETFDoc(
+        symbol: "RTH",
+        name: "VanEck Retail ETF",
+        currency: "USD",
+        exchange: "NYSE",
+        micCode: "ARCX",
+        country: "United States"
+    )
+
+    return NavigationStack {
+        AddInvestmentView(currETF: sel, editItem: nil)
+            .environmentObject(inputs)
     }
 }

@@ -18,6 +18,8 @@
 		CA833DEE2E99BAF4002C3A43 /* lstm_60.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = CA833DED2E99BAF4002C3A43 /* lstm_60.mlpackage */; };
 		CA833DEF2E99BAF4002C3A43 /* full_lstm.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = CA833DEC2E99BAF4002C3A43 /* full_lstm.mlpackage */; };
 		CA9C48482E6FE09700B603A9 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = CA9C48472E6FE08E00B603A9 /* .gitignore */; };
+		CABBC40F2EBED9CC00126C15 /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = CABBC40E2EBED9C100126C15 /* LICENSE.md */; };
+		CABBC4132EBEDBA500126C15 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = CABBC4122EBEDBA500126C15 /* FirebaseAppCheck */; };
 		CABE90F02E9B5606003F666F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = CABE90EF2E9B5606003F666F /* README.md */; };
 /* End PBXBuildFile section */
 
@@ -46,6 +48,7 @@
 		CA833DEC2E99BAF4002C3A43 /* full_lstm.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = full_lstm.mlpackage; sourceTree = "<group>"; };
 		CA833DED2E99BAF4002C3A43 /* lstm_60.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = lstm_60.mlpackage; sourceTree = "<group>"; };
 		CA9C48472E6FE08E00B603A9 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		CABBC40E2EBED9C100126C15 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		CABE90EF2E9B5606003F666F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -89,6 +92,7 @@
 				CA553DD52E8CEF16001FD2D8 /* FirebaseCore in Frameworks */,
 				CA553DDA2E8CEFAB001FD2D8 /* GoogleSignIn in Frameworks */,
 				CA553DD32E8CEF16001FD2D8 /* FirebaseAuth in Frameworks */,
+				CABBC4132EBEDBA500126C15 /* FirebaseAppCheck in Frameworks */,
 				CA553DD72E8CEF16001FD2D8 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -113,6 +117,7 @@
 		CA3638B22E546A5600F8E067 = {
 			isa = PBXGroup;
 			children = (
+				CABBC40E2EBED9C100126C15 /* LICENSE.md */,
 				CABE90EF2E9B5606003F666F /* README.md */,
 				CA9C48472E6FE08E00B603A9 /* .gitignore */,
 				CA3638BD2E546A5600F8E067 /* FireLab */,
@@ -160,6 +165,7 @@
 				CA553DD62E8CEF16001FD2D8 /* FirebaseFirestore */,
 				CA553DD92E8CEFAB001FD2D8 /* GoogleSignIn */,
 				CA553DDB2E8CEFAB001FD2D8 /* GoogleSignInSwift */,
+				CABBC4122EBEDBA500126C15 /* FirebaseAppCheck */,
 			);
 			productName = FireLab;
 			productReference = CA3638BB2E546A5600F8E067 /* FireLab.app */;
@@ -266,6 +272,7 @@
 			files = (
 				CA9C48482E6FE09700B603A9 /* .gitignore in Resources */,
 				CABE90F02E9B5606003F666F /* README.md in Resources */,
+				CABBC40F2EBED9CC00126C15 /* LICENSE.md in Resources */,
 				CA553DED2E8CF525001FD2D8 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -658,6 +665,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA553DD82E8CEFAB001FD2D8 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		CABBC4122EBEDBA500126C15 /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA553DD12E8CEF16001FD2D8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

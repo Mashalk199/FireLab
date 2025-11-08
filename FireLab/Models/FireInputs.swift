@@ -42,23 +42,36 @@ class FireInputs: ObservableObject {
 }
 enum InvestmentType: String, Codable { case etf, bond, superannuation }
 /// This object stores the details of a particular investment, whether it is an existing ETF selected from the database, or a user-created bond
-struct InvestmentItem: Identifiable, Hashable, Codable {
-    let id = UUID()
+struct InvestmentItem: Identifiable, Codable, Equatable, Hashable {
+    // Provide a property-level default so Decodable synthesis is happy
+    let id: UUID = UUID()
 
-    // Fields your calculator already uses
     var name: String
     var type: InvestmentType
     var allocationPercent: String
-    var expectedReturn: String // (percentage, float whole number out of 100)
-
-    var etfSnapshot: ETFDoc?  // nil for bonds
-
-    // Convenience
-    var isETF: Bool { type == .etf }
+    var expectedReturn: String
+    var etfSnapshot: ETFDoc?  // runtime-only (not encoded)
     var autoCalc: Bool
 
+    // Convenience init (no id parameter needed)
+    init(
+        name: String = "",
+        type: InvestmentType = .etf,
+        allocationPercent: String = "",
+        expectedReturn: String = "",
+        etfSnapshot: ETFDoc? = nil,
+        autoCalc: Bool = false
+    ) {
+        self.name = name
+        self.type = type
+        self.allocationPercent = allocationPercent
+        self.expectedReturn = expectedReturn
+        self.etfSnapshot = etfSnapshot
+        self.autoCalc = autoCalc
+    }
+
     private enum CodingKeys: String, CodingKey {
-        case name, type, allocationPercent, expectedReturn, etfSnapshot, autoCalc
+        case name, type, allocationPercent, expectedReturn, autoCalc
     }
 }
 

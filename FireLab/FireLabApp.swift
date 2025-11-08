@@ -12,6 +12,7 @@ import SwiftUI
 import SwiftUI
 
 import FirebaseCore
+import FirebaseAppCheck
 
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -21,6 +22,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         
         FirebaseApp.configure()
+        #if DEBUG
+        AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
+        #else
+        AppCheck.setAppCheckProviderFactory(AppAttestProviderFactory())
+        #endif
         
         return true
         
