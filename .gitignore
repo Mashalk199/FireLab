@@ -1,22 +1,16 @@
 # macOS
 .DS_Store
 
-# Project
-# Ignore all GoogleService-Info.plist files
-**/GoogleService-Info.plist
-Development working out
 Secrets.plist
+**/Secrets.plist
+.env
+*.private.xcconfig
 
-
-# Xcode
-*.xcuserstate
-Secrets.plist
+# Xcode noise
 xcuserdata/
+*.xcuserstate
 DerivedData/
-*.xcworkspace
-GoogleService-Info.plist
-**/GoogleService-Info.plist
 
-
-# Swift Package Manager
+# SwiftPM
 .build/
+EOF
