@@ -14,3 +14,4 @@ DerivedData/
 # SwiftPM
 .build/
 EOF
+FireLab.xcodeproj/project.xcworkspace/xcshareddata/
