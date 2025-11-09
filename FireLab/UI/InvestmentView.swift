@@ -28,11 +28,10 @@ enum DragState {
 struct InvestmentView: View {
     @EnvironmentObject var inputs: FireInputs
     @StateObject private var vm = InvestmentViewModel() // added VM
-    @StateObject private var currETF = SelectedETF()
     @State private var goNext = false
     @AccessibilityFocusState private var errorFocused: Bool
-    @State private var itemToEdit = InvestmentItem()
-    @State private var goToEdit = false
+    @State private var currItem = InvestmentItem()
+    @State private var goToInvestment = false
 
     
     var body: some View {
@@ -91,8 +90,8 @@ struct InvestmentView: View {
                                                  itemList: $inputs.investmentItems,
                                                  onEdit: {
                             
-                                                        itemToEdit = item
-                                                        goToEdit = true
+                                                        currItem = item
+                                                        goToInvestment = true
                                                          })
                     }
                     .transition(.move(edge: .leading).combined(with: .opacity))
@@ -107,15 +106,22 @@ struct InvestmentView: View {
             }
             
             HStack(spacing: 14) {
-                SmallNavButton(text: "Add Investment",
+                Button {
+                        currItem = InvestmentItem()    // fresh item
+                        goToInvestment = true               // trigger navigation
+                    } label: {
+                        SmallButtonView(
+                            text: "Add Investment",
+                            fontSize: 16,
                             icon: "plus.circle",
                             width: 180,
                             fgColor: .white,
                             bgColor: .orange,
-                            border: .orange,
-                            hint: "Add an investment to your list") {
-                    AddInvestmentView(currETF: currETF, editItem: nil)
-                }
+                            border: .orange
+                        )
+                    }
+                    .accessibilityLabel("Add Investment")
+                    .accessibilityHint("Add an investment to your list")
                 Button {
                     if vm.validate() { goNext = true } // moved validation
                 } label: {
@@ -139,9 +145,9 @@ struct InvestmentView: View {
             )
             .environmentObject(inputs) // keep passing the same inputs
         }
-        .navigationDestination(isPresented: $goToEdit) {
+        .navigationDestination(isPresented: $goToInvestment) {
             // We know which item is being edited via editingItemID
-            AddInvestmentView(currETF: currETF, editItem: itemToEdit)
+            AddInvestmentView(currItem: $currItem)
                 .environmentObject(inputs)
         }
         .overlay(alignment: .bottomTrailing) {

@@ -11,7 +11,7 @@ import SwiftUI
 struct ETFSearchView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var inputs: FireInputs
-    @ObservedObject var currETF: SelectedETF
+    @Binding var currItem: InvestmentItem
     @State private var fileContent: String = "Loading..."
     @State private var query = ""
     @StateObject private var vm = ETFSearchViewModel()
@@ -45,7 +45,7 @@ struct ETFSearchView: View {
             } else {
                 List(filtered) { etf in
                     Button {
-                        currETF.selectedETF = etf
+                        currItem.etfSnapshot = etf
                         dismiss()
                     } label: {
                         VStack(alignment: .leading) {
@@ -65,8 +65,9 @@ struct ETFSearchView: View {
 }
 
 #Preview {
+    @Previewable @State var investmentItem = InvestmentItem()
     NavigationStack {
-        ETFSearchView(currETF: SelectedETF())
+        ETFSearchView(currItem: $investmentItem)
     }
         .environmentObject(FireInputs())
 }

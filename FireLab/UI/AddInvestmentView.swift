@@ -8,10 +8,6 @@
 import SwiftUI
 import UIKit
 
-/// This object is used to pass information from the ETFSearchView screen about the selected ETF to this AddInvestmentView screen
-class SelectedETF: ObservableObject {
-    @Published var selectedETF: ETFDoc?
-}
 
 /** This screen allows users to add an investment of ETF or bond type to their portfolio that they want to invest into. Users can either select an ETF from the provided list or create their own bond that they are investing in.
  
@@ -22,14 +18,15 @@ struct AddInvestmentView: View {
     @EnvironmentObject var inputs: FireInputs
 
     @StateObject private var vm: AddInvestmentViewModel
-    @ObservedObject private var currETF: SelectedETF
 
     @AccessibilityFocusState private var errorFocused: Bool
+    @Binding private var currItem: InvestmentItem
 
     // take SelectedETF and pass it to the VM
-    init(currETF: SelectedETF, editItem: InvestmentItem?) {
-        self._currETF = ObservedObject(wrappedValue: currETF)
-        _vm = StateObject(wrappedValue: AddInvestmentViewModel(currETF: currETF, editItem: editItem))
+    init(currItem: Binding<InvestmentItem>) {
+        // This is really complicated, i think the issue with details not prefilling has got to do with the wrapped value not updating in this init, where something like  self.currItem = currItem.wrappedValue needs to happen
+        _currItem = currItem
+        _vm = StateObject(wrappedValue: AddInvestmentViewModel(currItem: currItem.wrappedValue))
     }
 
     var body: some View {
@@ -67,7 +64,7 @@ struct AddInvestmentView: View {
 
             if vm.tab == 0 {
                 VStack(spacing: 12) {
-                    if let selectedETF = currETF.selectedETF {
+                    if let selectedETF = currItem.etfSnapshot {
                         VStack {
                             HStack {
                                 Text("Symbol: \(selectedETF.symbol)")
@@ -85,7 +82,7 @@ struct AddInvestmentView: View {
                         hint: "Add an investment to your list",
                         height: 60
                     ) {
-                        ETFSearchView(currETF: currETF)
+                        ETFSearchView(currItem: $currItem)
                     }
                     .padding([.top, .bottom], 20)
 
@@ -128,7 +125,7 @@ struct AddInvestmentView: View {
                 .accessibilityLabel("Cancel adding investment")
 
                 RoundedFillButton(title: "Add") {
-                    if vm.addInvestmentIfValid() {
+                    if vm.addInvestmentIfValid(currItem: currItem) {
                         dismiss()
                     } else {
                         errorFocused = true
@@ -210,19 +207,12 @@ struct RoundedFillButton: View {
 }
 
 #Preview {
-    let inputs = FireInputs.mockDefaultConfig()   // or FireInputs()
-    let sel = SelectedETF()
-    sel.selectedETF = ETFDoc(
-        symbol: "RTH",
-        name: "VanEck Retail ETF",
-        currency: "USD",
-        exchange: "NYSE",
-        micCode: "ARCX",
-        country: "United States"
-    )
-
-    return NavigationStack {
-        AddInvestmentView(currETF: sel, editItem: nil)
-            .environmentObject(inputs)
+    NavigationStack {
+        AddInvestmentView(
+            currItem: .constant(
+                FireInputs.mockDefaultConfig().investmentItems[0]
+            )
+        )
+        .environmentObject(FireInputs.mockDefaultConfig())
     }
 }

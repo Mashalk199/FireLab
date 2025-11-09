@@ -18,29 +18,27 @@ final class AddInvestmentViewModel: ObservableObject {
     @Published var errorText: String?
     
 
-    var currETF: SelectedETF
-    let editItem: InvestmentItem?
+    let currItem: InvestmentItem
 
     private var inputs: FireInputs?
 
-    init(currETF: SelectedETF, editItem: InvestmentItem?) {
-        self.currETF = currETF
-        self.editItem = editItem
+    init(currItem: InvestmentItem) {
+        self.currItem = currItem
         
         /* Below the item-to-edit's values are prefilled, otherwise if
         it doesn't exist then default values are used */
-        if self.editItem?.type == .etf {
+        if self.currItem.type == .etf {
             self.tab = 0
-            self.expectedEtfRet = self.editItem?.expectedReturn ?? ""
+            self.expectedEtfRet = self.currItem.expectedReturn ?? ""
 
         }
-        else if self.editItem?.type == .bond {
+        else if self.currItem.type == .bond {
             self.tab = 1
-            self.expectedBondRet = self.editItem?.expectedReturn ?? ""
-            self.bondName = self.editItem?.name ?? ""
+            self.expectedBondRet = self.currItem.expectedReturn ?? ""
+            self.bondName = self.currItem.name ?? ""
 
         }
-        self.autoCalc = self.editItem?.autoCalc ?? false
+        self.autoCalc = self.currItem.autoCalc ?? false
     }
 
     func attach(inputs: FireInputs) {
@@ -48,9 +46,9 @@ final class AddInvestmentViewModel: ObservableObject {
     }
 
     /// Function to validate user input, ensuring an ETF is selected or that a bond name is set
-    func validate() -> Bool {
+    func validate(currItem: InvestmentItem) -> Bool {
         if tab == 0 {
-            guard currETF.selectedETF != nil else {
+            guard currItem.etfSnapshot != nil else {
                 errorText = "Please select an ETF"
                 return false
             }
@@ -78,16 +76,16 @@ final class AddInvestmentViewModel: ObservableObject {
     }
 
     /// Adds to inputs if valid; returns true so the View can dismiss.
-    func addInvestmentIfValid() -> Bool {
-        guard validate(), let inputs else { return false }
+    func addInvestmentIfValid(currItem: InvestmentItem) -> Bool {
+        guard validate(currItem: currItem), let inputs else { return false }
 
         let displayName = tab == 0
-            ? (currETF.selectedETF?.name ?? "ETF")
+        ? (currItem.etfSnapshot?.name ?? "ETF")
             : (bondName.isEmpty ? "Bond #1" : bondName)
 
-        let snapshot = (tab == 0) ? currETF.selectedETF : nil
+        let snapshot = (tab == 0) ? currItem.etfSnapshot : nil
 
-        if let editItem, let idx = inputs.investmentItems.firstIndex(where: { $0.id == editItem.id }) {
+        if let idx = inputs.investmentItems.firstIndex(where: { $0.id == currItem.id }) {
 
                 // Update existing item in place
                 inputs.investmentItems[idx].name = displayName
@@ -109,8 +107,6 @@ final class AddInvestmentViewModel: ObservableObject {
                 )
             )
         }
-
-        currETF.selectedETF = nil
         return true
     }
 }
