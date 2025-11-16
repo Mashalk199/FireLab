@@ -1,7 +1,5 @@
 #  Readme
 
-Authors: Mashal Khan, Yihan Li
-
 How to run app:
 
 1. Create an account on twelvedata.com
