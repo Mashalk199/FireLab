@@ -29,16 +29,18 @@ final class AddInvestmentViewModel: ObservableObject {
         it doesn't exist then default values are used */
         if self.currItem.type == .etf {
             self.tab = 0
-            self.expectedEtfRet = self.currItem.expectedReturn ?? ""
+            self.expectedEtfRet = self.currItem.expectedReturn
+            print("EXP RET:" + self.currItem.expectedReturn)
 
         }
         else if self.currItem.type == .bond {
             self.tab = 1
-            self.expectedBondRet = self.currItem.expectedReturn ?? ""
-            self.bondName = self.currItem.name ?? ""
+            self.expectedBondRet = self.currItem.expectedReturn
+            self.bondName = self.currItem.name
 
         }
-        self.autoCalc = self.currItem.autoCalc ?? false
+        self.autoCalc = self.currItem.autoCalc
+        print("Initializing AddInvestmentViewModel with expectedReturn: \(currItem.expectedReturn)")
     }
 
     func attach(inputs: FireInputs) {
