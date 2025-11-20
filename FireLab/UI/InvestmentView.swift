@@ -272,35 +272,38 @@ struct InvestmentAllocationCard : View {
                     .accessibilityLabel(Text("\(item.name), Allocation"))
                 
             )
-            .offset(x: offsetX + dragState.translation.width)
+            .offset(x: offsetX)
             .gesture(
                 DragGesture()
-                    .updating($dragState, body: {(value, state, _) in
-                        if abs(value.translation.width) < CGFloat(maxDragWidth) {
-                            state = .dragging(translation: value.translation)
-                        }
-                        else if value.translation.width > 0 {
-                            state = .dragging(translation: CGSize(width: maxDragWidth, height: 0))
-                        }
-                        else {
-                            state = .dragging(translation: CGSize(width: -maxDragWidth, height: 0))
-                        }
-                            
-                    })
+                    .onChanged { value in
+                        // This performs clamping, so that the card doesn't move too far left or right
+                        let raw = value.translation.width
+                        let clamped = min(max(raw, -CGFloat(maxDragWidth)),
+                                          CGFloat(maxDragWidth))
+                        offsetX = clamped
+                    }
                     .onEnded({ (value) in
-                        if value.translation.width <= -CGFloat(maxDragWidth) {
-                            
-                            // Makes sure the card doesn't reset to its original non-offsetted position when the gesture ends (when the dragState resets on the gestures end)
-                            offsetX = -CGFloat(maxDragWidth)
+                        let raw = value.translation.width
+                        
+                        if raw <= -CGFloat(maxDragWidth) {
+                            withAnimation(.easeInOut) {
+                                offsetX = -CGFloat(maxDragWidth)
+                            }
                             if let idx = itemList.firstIndex(of: item) {
-                                // Adds animation for specifically when the card is removed
                                 withAnimation(.easeInOut) {
                                     itemList.remove(at: idx)
                                 }
                             }
-                        }
-                        else if value.translation.width >= CGFloat(maxDragWidth) {
+                        } else if raw >= CGFloat(maxDragWidth) {
+                            withAnimation(.easeInOut) {
+                                offsetX = 0
+                            }
                             onEdit()
+                        } else {
+                            // this is the “snap back” path
+                            withAnimation(.easeOut) {
+                                offsetX = 0
+                            }
                         }
 
                     })

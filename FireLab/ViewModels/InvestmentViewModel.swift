@@ -72,7 +72,7 @@ final class InvestmentViewModel: ObservableObject {
         return true
     }
     
-    /// Autocompletes all unfilled allocations with an equal allocation. moved from View
+    /// Autocompletes all unfilled allocations with an equal allocation.
     func autocompleteAllocations() {
         guard let inputs, !inputs.investmentItems.isEmpty else { return }
         let filledTotal = inputs.investmentItems
