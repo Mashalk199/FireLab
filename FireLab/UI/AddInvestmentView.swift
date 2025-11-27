@@ -24,9 +24,10 @@ struct AddInvestmentView: View {
 
     // take SelectedETF and pass it to the VM
     init(currItem: Binding<InvestmentItem>) {
-        // This is really complicated, i think the issue with details not prefilling has got to do with the wrapped value not updating in this init, where something like  self.currItem = currItem.wrappedValue needs to happen
+        // TODO: Fix the current poor handling of currItem being passed to the viewmodel 
         _currItem = currItem
-        _vm = StateObject(wrappedValue: AddInvestmentViewModel(currItem: currItem.wrappedValue))
+        let currentItem = currItem.wrappedValue
+        _vm = StateObject(wrappedValue: AddInvestmentViewModel(currItem: currentItem))
     }
 
     var body: some View {

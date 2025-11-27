@@ -10,19 +10,7 @@ import UIKit
 
 // Here we define a gesture enum to determine the position of each investment card during a gesture.
 
-enum DragState {
-    case inactive
-    case dragging(translation: CGSize)
-    
-    var translation: CGSize {
-        switch self {
-        case .inactive:
-            return .zero
-        case .dragging(let translation):
-            return translation
-        }
-    }
-}
+
 
 /** In this screen, the user is able to input all of their investment preferences and details. They can specify the investment diversity they will want their portfolio to follow, how much they want to allocate to certain investments with certain growth rates. */
 struct InvestmentView: View {
@@ -191,7 +179,6 @@ struct InvestmentAllocationCard : View {
     @Binding var itemList: [InvestmentItem]
 //    @ObservedObject var currETF: SelectedETF
     var onEdit: () -> Void
-    @GestureState private var dragState = DragState.inactive
     
     var maxDragWidth: Int = 70
     // To make animation look better, we use this additional offset variable

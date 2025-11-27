@@ -30,7 +30,6 @@ final class AddInvestmentViewModel: ObservableObject {
         if self.currItem.type == .etf {
             self.tab = 0
             self.expectedEtfRet = self.currItem.expectedReturn
-            print("EXP RET:" + self.currItem.expectedReturn)
 
         }
         else if self.currItem.type == .bond {
@@ -40,7 +39,6 @@ final class AddInvestmentViewModel: ObservableObject {
 
         }
         self.autoCalc = self.currItem.autoCalc
-        print("Initializing AddInvestmentViewModel with expectedReturn: \(currItem.expectedReturn)")
     }
 
     func attach(inputs: FireInputs) {
