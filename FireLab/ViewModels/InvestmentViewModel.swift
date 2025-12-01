@@ -12,7 +12,7 @@ final class InvestmentViewModel: ObservableObject {
     @Published var errorText: String?
     
     // gets attached from the View (so EnvironmentObject is available first)
-    private var inputs: FireInputs?
+    @Published private var inputs: FireInputs?
     func attach(inputs: FireInputs) { if self.inputs == nil { self.inputs = inputs } }
     
     /// This computed property computes the total percentage allocated by the user across all investments displayed.

@@ -177,7 +177,7 @@ struct InvestmentView: View {
 struct InvestmentAllocationCard : View {
     @Binding var item: InvestmentItem
     @Binding var itemList: [InvestmentItem]
-//    @ObservedObject var currETF: SelectedETF
+    @State private var isHorizontalGesture = false
     var onEdit: () -> Void
     
     var maxDragWidth: Int = 70
@@ -260,16 +260,37 @@ struct InvestmentAllocationCard : View {
                 
             )
             .offset(x: offsetX)
-            .gesture(
+            .simultaneousGesture(
                 DragGesture()
                     .onChanged { value in
+                        let translation = value.translation
+
+                        // Determine if user intends a horizontal drag.
+                        if !isHorizontalGesture {
+                            if abs(translation.width) > abs(translation.height) {
+                                // Lock the gesture as horizontal
+                                isHorizontalGesture = true
+                            } else {
+                                // Vertical drag → let ScrollView handle it
+                                return
+                            }
+                        }
+
+                        // If we reach here, gesture is horizontal.
                         // This performs clamping, so that the card doesn't move too far left or right
-                        let raw = value.translation.width
+                        let raw = translation.width
                         let clamped = min(max(raw, -CGFloat(maxDragWidth)),
                                           CGFloat(maxDragWidth))
                         offsetX = clamped
                     }
                     .onEnded({ (value) in
+                        defer { isHorizontalGesture = false } // reset
+
+                        if !isHorizontalGesture {
+                            // It was a vertical drag → do nothing
+                            return
+                        }
+                        
                         let raw = value.translation.width
                         
                         if raw <= -CGFloat(maxDragWidth) {
