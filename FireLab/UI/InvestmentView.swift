@@ -75,12 +75,14 @@ struct InvestmentView: View {
                     // TODO: When the user slides the card to the left, let it slide 20% through at full opacity, display a trash can on the right, and when the drag gesture is over, the card will automatically delete with a transition towards the leading edge
                     ForEach($inputs.investmentItems) { $item in
                         InvestmentAllocationCard(item: $item,
-                                                 itemList: $inputs.investmentItems,
                                                  onEdit: {
                             
                                                         currItem = item
                                                         goToInvestment = true
-                                                         })
+                                                         },
+                                                 onDelete: {
+                                                     vm.removeItem(item)
+                                                 })
                     }
                     .transition(.move(edge: .leading).combined(with: .opacity))
 
@@ -176,9 +178,10 @@ struct InvestmentView: View {
  a particular investment. */
 struct InvestmentAllocationCard : View {
     @Binding var item: InvestmentItem
-    @Binding var itemList: [InvestmentItem]
-    @State private var isHorizontalGesture = false
     var onEdit: () -> Void
+    var onDelete: () -> Void
+    @State private var isHorizontalGesture = false
+
     
     var maxDragWidth: Int = 70
     // To make animation look better, we use this additional offset variable
@@ -191,11 +194,9 @@ struct InvestmentAllocationCard : View {
             .overlay(alignment: .topTrailing) {
                 // Add .destructive annotation as per accessibility HIG
                 Button(role: .destructive) {
-                    if let idx = itemList.firstIndex(of: item) {
-                        // Adds animation for specifically when the card is removed
-                        withAnimation(.easeInOut) {
-                            itemList.remove(at: idx)
-                        }
+                    // Adds animation for specifically when the card is removed
+                    withAnimation(.easeInOut) {
+                        onDelete()
                     }
                 } label: {
                     Image(systemName: "x.circle")
@@ -294,13 +295,9 @@ struct InvestmentAllocationCard : View {
                         let raw = value.translation.width
                         
                         if raw <= -CGFloat(maxDragWidth) {
+                            offsetX = -CGFloat(maxDragWidth)
                             withAnimation(.easeInOut) {
-                                offsetX = -CGFloat(maxDragWidth)
-                            }
-                            if let idx = itemList.firstIndex(of: item) {
-                                withAnimation(.easeInOut) {
-                                    itemList.remove(at: idx)
-                                }
+                                    onDelete()
                             }
                         } else if raw >= CGFloat(maxDragWidth) {
                             withAnimation(.easeInOut) {

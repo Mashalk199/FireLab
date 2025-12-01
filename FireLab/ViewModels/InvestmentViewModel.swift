@@ -35,6 +35,14 @@ final class InvestmentViewModel: ObservableObject {
         return abs(totalPercent - 100) < 0.01
     }
     
+    func removeItem(_ item: InvestmentItem) {
+        guard let inputs else { return }
+
+        if let idx = inputs.investmentItems.firstIndex(where: { $0.id == item.id }) {
+            inputs.investmentItems.remove(at: idx)
+        }
+    }
+    
     // Function to validate all user inputs moved from View
     func validate() -> Bool {
         guard let inputs else { return false }
