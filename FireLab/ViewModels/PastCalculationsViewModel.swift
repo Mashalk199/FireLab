@@ -34,8 +34,8 @@ final class PastCalculationsViewModel: ObservableObject {
         var built: [Row] = []
         for r in records {
             if let (snap, res) = Persistence.decode(record: r) {
-                let years = res.workingDays / 365
-                let months = (res.workingDays % 365) / 30
+                let years = res.workingMonths / 12
+                let months = res.workingMonths % 12
                 let brokerPct = Int(res.brokerProp * 100)
 
                 let title = r.createdAt.formatted(date: .abbreviated, time: .shortened)

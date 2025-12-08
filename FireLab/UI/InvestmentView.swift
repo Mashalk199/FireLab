@@ -268,7 +268,7 @@ struct InvestmentAllocationCard : View {
 
                         // Determine if user intends a horizontal drag.
                         if !isHorizontalGesture {
-                            if abs(translation.width) > abs(translation.height) {
+                            if abs(translation.width) > 5 {
                                 // Lock the gesture as horizontal
                                 isHorizontalGesture = true
                             } else {

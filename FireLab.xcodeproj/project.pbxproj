@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CA0C3D962EE5C13200012A88 /* lstm_monthly.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = CA0C3D952EE5C13200012A88 /* lstm_monthly.mlpackage */; };
 		CA553DD32E8CEF16001FD2D8 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = CA553DD22E8CEF16001FD2D8 /* FirebaseAuth */; };
 		CA553DD52E8CEF16001FD2D8 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = CA553DD42E8CEF16001FD2D8 /* FirebaseCore */; };
 		CA553DD72E8CEF16001FD2D8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = CA553DD62E8CEF16001FD2D8 /* FirebaseFirestore */; };
@@ -41,6 +42,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CA0C3D952EE5C13200012A88 /* lstm_monthly.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = lstm_monthly.mlpackage; sourceTree = "<group>"; };
 		CA3638BB2E546A5600F8E067 /* FireLab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FireLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA3638C82E546A5700F8E067 /* FireLabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireLabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA3638D22E546A5700F8E067 /* FireLabUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireLabUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -127,6 +129,7 @@
 				CA553DEB2E8CF525001FD2D8 /* GoogleService-Info.plist */,
 				CA833DEC2E99BAF4002C3A43 /* full_lstm.mlpackage */,
 				CA833DED2E99BAF4002C3A43 /* lstm_60.mlpackage */,
+				CA0C3D952EE5C13200012A88 /* lstm_monthly.mlpackage */,
 			);
 			sourceTree = "<group>";
 		};
@@ -300,6 +303,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA0C3D962EE5C13200012A88 /* lstm_monthly.mlpackage in Sources */,
 				CA833DEE2E99BAF4002C3A43 /* lstm_60.mlpackage in Sources */,
 				CA833DEF2E99BAF4002C3A43 /* full_lstm.mlpackage in Sources */,
 			);

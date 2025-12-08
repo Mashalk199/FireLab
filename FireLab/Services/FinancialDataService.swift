@@ -12,7 +12,7 @@ protocol FinancialDataFetching {
 }
 
 /** This service provides a simple interface which allows a user to pass a symbol value and retrieve an array of Double values
- representing daily ETF prices
+ representing monthly ETF prices
  */
 class FinancialDataService: FinancialDataFetching {
     private let apiKey: String
@@ -49,10 +49,10 @@ class FinancialDataService: FinancialDataFetching {
         comps.queryItems = [
             URLQueryItem(name: "apikey", value: apiKey),
             URLQueryItem(name: "symbol", value: symbol),
-            URLQueryItem(name: "interval", value: "1day"),
-            URLQueryItem(name: "outputsize", value: "501"),
+            URLQueryItem(name: "interval", value: "1month"),
+            URLQueryItem(name: "outputsize", value: "61"),        
             URLQueryItem(name: "format", value: "JSON"),
-            URLQueryItem(name: "end_date", value: dateStr) 
+            URLQueryItem(name: "end_date", value: dateStr)
         ]
         
         guard let url = comps.url else {
@@ -72,4 +72,3 @@ class FinancialDataService: FinancialDataFetching {
         return financialArray
     }
 }
-
