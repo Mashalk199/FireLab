@@ -18,13 +18,8 @@ final class HubViewModel: ObservableObject {
         guard let inputs else { return false }
         let cal = Calendar.current
 
-        guard let y14 = cal.date(byAdding: .year, value: -14, to: Date()),
+        guard let y14 = cal.date(byAdding: .month, value: -14 * 12 - 9, to: Date()),
               inputs.dateOfBirth < y14 else {
-            errorText = "You must be at least 14 years and 9 months old to be able to work!"
-            return false
-        }
-        guard let cutoff = cal.date(byAdding: .month, value: -9, to: y14),
-              inputs.dateOfBirth < cutoff else {
             errorText = "You must be at least 14 years and 9 months old to be able to work!"
             return false
         }

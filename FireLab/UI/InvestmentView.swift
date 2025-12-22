@@ -268,20 +268,29 @@ struct InvestmentAllocationCard : View {
 
                         // Determine if user intends a horizontal drag.
                         if !isHorizontalGesture {
-                            if abs(translation.width) > 5 {
+                            if abs(translation.width) > abs(translation.height) {
                                 // Lock the gesture as horizontal
                                 isHorizontalGesture = true
+                                // This performs clamping, so that the card doesn't move too far left or right
+                                let raw = translation.width
+                                let clamped = min(max(raw, -CGFloat(maxDragWidth)),
+                                                  CGFloat(maxDragWidth))
+                                
+                                withAnimation(.easeOut) {
+                                    offsetX = clamped
+                                }
                             } else {
                                 // Vertical drag → let ScrollView handle it
                                 return
                             }
+                            
                         }
 
                         // If we reach here, gesture is horizontal.
-                        // This performs clamping, so that the card doesn't move too far left or right
                         let raw = translation.width
                         let clamped = min(max(raw, -CGFloat(maxDragWidth)),
                                           CGFloat(maxDragWidth))
+                        
                         offsetX = clamped
                     }
                     .onEnded({ (value) in

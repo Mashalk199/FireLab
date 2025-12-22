@@ -270,7 +270,7 @@ struct FireCalculatorService {
 
         /*
          In Phase B we will fetch financial data from the api using our FinancialDataService and perform
-         machine learning with the MLForecaseService.
+         machine learning with the MLForecastService.
 
          We now assume the ML model provides *month-to-month* returns, and we only use a single
          "full" model. If it is not available or there is insufficient data, we fall back to the user
