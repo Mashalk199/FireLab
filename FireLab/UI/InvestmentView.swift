@@ -181,6 +181,7 @@ struct InvestmentAllocationCard : View {
     var onEdit: () -> Void
     var onDelete: () -> Void
     @State private var isHorizontalGesture = false
+    @State private var gestureLocked = false
 
     
     var maxDragWidth: Int = 70
@@ -262,66 +263,65 @@ struct InvestmentAllocationCard : View {
             )
             .offset(x: offsetX)
             .simultaneousGesture(
-                DragGesture()
+                DragGesture(minimumDistance: 8)
                     .onChanged { value in
-                        let translation = value.translation
+                        let dx = value.translation.width
+                        let dy = value.translation.height
 
-                        // Determine if user intends a horizontal drag.
-                        if !isHorizontalGesture {
-                            if abs(translation.width) > abs(translation.height) {
-                                // Lock the gesture as horizontal
+                        // Decide intent ONCE at the start of the gesture
+                        if !gestureLocked {
+                            // Strong horizontal bias to avoid stealing vertical scrolls
+                            if abs(dx) > abs(dy) * 1.5 {
                                 isHorizontalGesture = true
-                                // This performs clamping, so that the card doesn't move too far left or right
-                                let raw = translation.width
-                                let clamped = min(max(raw, -CGFloat(maxDragWidth)),
-                                                  CGFloat(maxDragWidth))
-                                
-                                withAnimation(.easeOut) {
-                                    offsetX = clamped
-                                }
+                                gestureLocked = true
+                            } else if abs(dy) > abs(dx) {
+                                // Vertical gesture → allow ScrollView to handle it
+                                gestureLocked = true
+                                return
                             } else {
-                                // Vertical drag → let ScrollView handle it
+                                // Not enough information yet
                                 return
                             }
-                            
                         }
 
-                        // If we reach here, gesture is horizontal.
-                        let raw = translation.width
-                        let clamped = min(max(raw, -CGFloat(maxDragWidth)),
-                                          CGFloat(maxDragWidth))
-                        
+                        // If horizontal gesture is locked, move the card
+                        guard isHorizontalGesture else { return }
+
+                        let clamped = min(
+                            max(dx, -CGFloat(maxDragWidth)),
+                            CGFloat(maxDragWidth)
+                        )
                         offsetX = clamped
                     }
-                    .onEnded({ (value) in
-                        defer { isHorizontalGesture = false } // reset
-
-                        if !isHorizontalGesture {
-                            // It was a vertical drag → do nothing
-                            return
+                    .onEnded { value in
+                        defer {
+                            // Reset gesture state for next interaction
+                            isHorizontalGesture = false
+                            gestureLocked = false
                         }
-                        
-                        let raw = value.translation.width
-                        
-                        if raw <= -CGFloat(maxDragWidth) {
-                            offsetX = -CGFloat(maxDragWidth)
+
+                        guard isHorizontalGesture else { return }
+
+                        let dx = value.translation.width
+
+                        if dx <= -CGFloat(maxDragWidth) {
                             withAnimation(.easeInOut) {
-                                    onDelete()
+                                offsetX = -CGFloat(maxDragWidth)
                             }
-                        } else if raw >= CGFloat(maxDragWidth) {
+                            onDelete()
+                        } else if dx >= CGFloat(maxDragWidth) {
                             withAnimation(.easeInOut) {
                                 offsetX = 0
                             }
                             onEdit()
                         } else {
-                            // this is the “snap back” path
+                            // Snap back to center
                             withAnimation(.easeOut) {
                                 offsetX = 0
                             }
                         }
-
-                    })
-                )
+                    }
+            )
     }
 }
 
