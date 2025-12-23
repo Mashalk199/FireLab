@@ -135,7 +135,7 @@ extension FireInputs {
                 allocationPercent: "60",
                 expectedReturn: "4.0",
                 etfSnapshot: adra,
-                autoCalc: true
+                autoCalc: false
             ),
             InvestmentItem(
                 name: "FEMS — EM Small Cap AlphaDEX",
@@ -151,7 +151,7 @@ extension FireInputs {
                 allocationPercent: "10",
                 expectedReturn: "2",
                 etfSnapshot: rth,
-                autoCalc: true
+                autoCalc: false
             )
         ]
 

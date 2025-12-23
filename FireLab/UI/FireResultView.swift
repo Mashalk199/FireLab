@@ -120,13 +120,19 @@ struct FireResultView: View {
                 let years = r.workingMonths / 12
                 let months = r.workingMonths % 12
                 
-                Text("\(years) years")
-                    .font(.system(size: 44, weight: .bold))
-                    .padding(.top, 10)
-                
-                Text("\(months) Months\nuntil you reach financial independence")
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
+                VStack(spacing: 6) {
+                    Text("\(years) years \(months) months")
+                        .font(.system(size: 42, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
+
+                    Text("until you reach financial independence")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 10)
                 
                 // Small banner: how long it took to clear debts (if any)
                 if r.debtClearMonths > 0 {
@@ -140,22 +146,55 @@ struct FireResultView: View {
                 Text("Retirement date: \(r.retirementDate.formatted(date: .abbreviated, time: .omitted))")
                     .foregroundStyle(.secondary)
                 
-                VStack(spacing: 6) {
-                    Text("Brokerage at retirement: $\(String(format: "%.0f", r.brokerageBalanceAtRetirement))")
-                    
-                    Text("Super at retirement: $\(String(format: "%.0f", r.superBalanceAtRetirement))")
+                VStack(spacing: 8) {
+                    Text("Balances at retirement")
+                        .font(.headline)
+
+                    Divider()
+
+                    HStack {
+                        Text("Brokerage")
+                        Spacer()
+                        Text("$\(String(format: "%.0f", r.brokerageBalanceAtRetirement))")
+                            .fontWeight(.semibold)
+                    }
+
+                    HStack {
+                        Text("Super")
+                        Spacer()
+                        Text("$\(String(format: "%.0f", r.superBalanceAtRetirement))")
+                            .fontWeight(.semibold)
+                    }
                 }
-                .font(.headline)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color.gray.opacity(0.1)))
                 
-                VStack(spacing: 4) {
-                    Text("Proportion to Brokerage: \(String(format: "%.2f%%", r.brokerProp * 100))")
+                VStack(spacing: 8) {
+                    Text("Monthly contributions")
+                        .font(.headline)
+
+                    Divider()
+
+                    HStack {
+                        Text("Brokerage")
+                        Spacer()
+                        Text("$\(String(format: "%.0f", r.monthlyBrokerContribution))")
+                    }
+
+                    HStack {
+                        Text("Super")
+                        Spacer()
+                        Text("$\(String(format: "%.0f", r.monthlySuperContribution))")
+                    }
+
+                    Text("Brokerage allocation: \(String(format: "%.1f%%", r.brokerProp * 100))")
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
-                    
-                    Text("Recommended Monthly Contribution To Brokerage: $\(String(format: "%.0f", r.monthlyBrokerContribution))")
-                    
-                    Text("Recommended Monthly Contribution To Super: $\(String(format: "%.0f", r.monthlySuperContribution))")
                 }
-                .frame(width: 350)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color.gray.opacity(0.1)))
                 
                 Spacer()
                 
@@ -171,6 +210,7 @@ struct FireResultView: View {
                         ContentView()
                     }
                 }
+                .padding(.horizontal, 12)
                 
                 HStack {
                     Button {
@@ -182,6 +222,7 @@ struct FireResultView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                     }
                     .buttonStyle(.plain)
+                    .padding(.horizontal, 24)
                     .accessibilityLabel("Share retirement calculation results")
                     .accessibilityHint("Open iOS share sheet")
                 }
@@ -196,8 +237,12 @@ struct FireResultView: View {
                     .buttonStyle(.bordered)
                 }
                 .padding(.bottom, 12)
+                .padding(.horizontal, 24)
             }
+            Spacer()
+
         }
+        .padding(.horizontal, 20)
         
         .sheet(item: $shareURL) { box in
             ShareSheet(activityItems: [box.url])

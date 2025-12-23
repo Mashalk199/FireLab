@@ -305,10 +305,11 @@ struct InvestmentAllocationCard : View {
                         let dx = value.translation.width
 
                         if dx <= -CGFloat(maxDragWidth) {
+                            offsetX = -CGFloat(maxDragWidth)
+                            
                             withAnimation(.easeInOut) {
-                                offsetX = -CGFloat(maxDragWidth)
+                                onDelete()
                             }
-                            onDelete()
                         } else if dx >= CGFloat(maxDragWidth) {
                             withAnimation(.easeInOut) {
                                 offsetX = 0
