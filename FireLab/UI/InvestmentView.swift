@@ -187,29 +187,41 @@ struct InvestmentAllocationCard : View {
     var maxDragWidth: Int = 70
     // To make animation look better, we use this additional offset variable
     @State private var offsetX: CGFloat = 0
+    @State private var trashOffsetX: CGFloat = 0
+    @State private var pencilOffsetX: CGFloat = 0
+
     
     var body: some View {
-        RoundedRectangle(cornerRadius: 20)
-            .fill(Color(.lightGray))
-            .frame(width: 215, height: 200)
-            .overlay(alignment: .topTrailing) {
-                // Add .destructive annotation as per accessibility HIG
-                Button(role: .destructive) {
-                    // Adds animation for specifically when the card is removed
-                    withAnimation(.easeInOut) {
-                        onDelete()
+        ZStack {
+            
+            Image(systemName: "trash.circle.fill")
+                .offset(x: trashOffsetX)
+                .font(.system(size: 35))
+            Image(systemName: "pencil.circle.fill")
+                .offset(x: pencilOffsetX)
+                .font(.system(size: 35))
+            
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(.lightGray))
+                .frame(width: 215, height: 200)
+                .overlay(alignment: .topTrailing) {
+                    // Add .destructive annotation as per accessibility HIG
+                    Button(role: .destructive) {
+                        // Adds animation for specifically when the card is removed
+                        withAnimation(.easeInOut) {
+                            onDelete()
+                        }
+                    } label: {
+                        Image(systemName: "x.circle")
+                            .font(.system(size: 25, weight: .bold))
+                            .padding(10)
+                        // Hides this icon from being dictated by voiceover
+                            .accessibilityHidden(true)
                     }
-                } label: {
-                    Image(systemName: "x.circle")
-                        .font(.system(size: 25, weight: .bold))
-                        .padding(10)
-                    // Hides this icon from being dictated by voiceover
-                        .accessibilityHidden(true)
+                    .accessibilityLabel("Delete \(item.name) investment")
+                    .accessibilityHint("Removes this investment from the list")
                 }
-                .accessibilityLabel("Delete \(item.name) investment")
-                .accessibilityHint("Removes this investment from the list")
-            }
-            .overlay(
+                .overlay(
                     VStack {
                         Text(item.name)
                             .font(.system(size: 20, weight: .black))
@@ -257,72 +269,91 @@ struct InvestmentAllocationCard : View {
                         }
                     }
                     // Logically groups these views of text and textfields for accessibility
-                    .accessibilityElement(children: .contain)
-                    .accessibilityLabel(Text("\(item.name), Allocation"))
-                
-            )
-            .offset(x: offsetX)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 8)
-                    .onChanged { value in
-                        let dx = value.translation.width
-                        let dy = value.translation.height
-
-                        // Decide intent ONCE at the start of the gesture
-                        if !gestureLocked {
-                            // Strong horizontal bias to avoid stealing vertical scrolls
-                            if abs(dx) > abs(dy) * 1.5 {
-                                isHorizontalGesture = true
-                                gestureLocked = true
-                            } else if abs(dy) > abs(dx) {
-                                // Vertical gesture → allow ScrollView to handle it
-                                gestureLocked = true
-                                return
-                            } else {
-                                // Not enough information yet
-                                return
-                            }
-                        }
-
-                        // If horizontal gesture is locked, move the card
-                        guard isHorizontalGesture else { return }
-
-                        let clamped = min(
-                            max(dx, -CGFloat(maxDragWidth)),
-                            CGFloat(maxDragWidth)
-                        )
-                        offsetX = clamped
-                    }
-                    .onEnded { value in
-                        defer {
-                            // Reset gesture state for next interaction
-                            isHorizontalGesture = false
-                            gestureLocked = false
-                        }
-
-                        guard isHorizontalGesture else { return }
-
-                        let dx = value.translation.width
-
-                        if dx <= -CGFloat(maxDragWidth) {
-                            offsetX = -CGFloat(maxDragWidth)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel(Text("\(item.name), Allocation"))
+                    
+                )
+                .offset(x: offsetX)
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 8)
+                        .onChanged { value in
+                            let dx = value.translation.width
+                            let dy = value.translation.height
                             
-                            withAnimation(.easeInOut) {
-                                onDelete()
+                            // Decide intent ONCE at the start of the gesture
+                            if !gestureLocked {
+                                // Strong horizontal bias to avoid stealing vertical scrolls
+                                if abs(dx) > abs(dy) * 1.5 {
+                                    isHorizontalGesture = true
+                                    gestureLocked = true
+                                } else if abs(dy) > abs(dx) {
+                                    // Vertical gesture → allow ScrollView to handle it
+                                    gestureLocked = true
+                                    return
+                                } else {
+                                    // Not enough information yet
+                                    return
+                                }
                             }
-                        } else if dx >= CGFloat(maxDragWidth) {
-                            withAnimation(.easeInOut) {
-                                offsetX = 0
+                            
+                            // If horizontal gesture is locked, move the card
+                            guard isHorizontalGesture else { return }
+                            
+                            // If the user drags to the left, offset the hidden trash icon to the right into view
+                            if dx < 0 {
+                                /*
+                                 Move the trash icon to the right at a speed of 1.7x the gesture translation.
+                                 Set a maximum travel distance of maxDragWidth * 1.7
+                                 */
+                                trashOffsetX = min(dx * -1.7, CGFloat(maxDragWidth) * 1.7)
                             }
-                            onEdit()
-                        } else {
-                            // Snap back to center
-                            withAnimation(.easeOut) {
-                                offsetX = 0
+                            // Else if the user drags to the right, move the pencil icon to the right
+                            else {
+                                pencilOffsetX = max(dx * -1.7, CGFloat(-maxDragWidth) * 1.7)
+                            }
+                            
+                            let clamped = min(
+                                max(dx, -CGFloat(maxDragWidth)),
+                                CGFloat(maxDragWidth)
+                            )
+                            offsetX = clamped
+                        }
+                        .onEnded { value in
+                            defer {
+                                // Reset gesture state for next interaction
+                                isHorizontalGesture = false
+                                gestureLocked = false
+                            }
+                            
+                            guard isHorizontalGesture else { return }
+                            
+                            let dx = value.translation.width
+                            
+                            if dx <= -CGFloat(maxDragWidth) {
+                                offsetX = -CGFloat(maxDragWidth)
+                                
+                                withAnimation(.easeInOut) {
+                                    onDelete()
+                                }
+                            } else if dx >= CGFloat(maxDragWidth) {
+                                withAnimation(.easeInOut) {
+                                    offsetX = 0
+                                    trashOffsetX = 0
+                                    pencilOffsetX = 0
+
+                                }
+                                onEdit()
+                            } else {
+                                // Snap back to center
+                                withAnimation(.easeOut) {
+                                    offsetX = 0
+                                    trashOffsetX = 0
+                                    pencilOffsetX = 0
+                                }
                             }
                         }
-                    }
-            )
+                )
+        }
     }
 }
 
