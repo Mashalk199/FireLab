@@ -183,12 +183,23 @@ struct InvestmentAllocationCard : View {
     @State private var isHorizontalGesture = false
     @State private var gestureLocked = false
 
-    
-    var maxDragWidth: Int = 70
+    var maxDragWidth: CGFloat = 70
     // To make animation look better, we use this additional offset variable
     @State private var offsetX: CGFloat = 0
     @State private var trashOffsetX: CGFloat = 0
     @State private var pencilOffsetX: CGFloat = 0
+    @State private var bounceToken: Int = 0
+    @State private var wasEditCommitted = false
+    @State private var deleteBounceToken: Int = 0
+    @State private var wasDeleteCommitted = false
+
+    private var editCommitted: Bool {
+        pencilOffsetX <= -maxDragWidth * 1.7
+    }
+    
+    private var deleteCommitted: Bool {
+        trashOffsetX >= maxDragWidth * 1.7
+    }
 
     
     var body: some View {
@@ -197,9 +208,11 @@ struct InvestmentAllocationCard : View {
             Image(systemName: "trash.circle.fill")
                 .offset(x: trashOffsetX)
                 .font(.system(size: 35))
+                .symbolEffect(.bounce, value: deleteBounceToken)
             Image(systemName: "pencil.circle.fill")
                 .offset(x: pencilOffsetX)
                 .font(.system(size: 35))
+                .symbolEffect(.bounce, value: bounceToken)
             
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.lightGray))
@@ -305,16 +318,28 @@ struct InvestmentAllocationCard : View {
                                  Move the trash icon to the right at a speed of 1.7x the gesture translation.
                                  Set a maximum travel distance of maxDragWidth * 1.7
                                  */
-                                trashOffsetX = min(dx * -1.7, CGFloat(maxDragWidth) * 1.7)
+                                trashOffsetX = min(dx * -1.7, maxDragWidth * 1.7)
+
+                                if deleteCommitted && !wasDeleteCommitted {
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    deleteBounceToken += 1
+                                }
+                                wasDeleteCommitted = deleteCommitted
                             }
                             // Else if the user drags to the right, move the pencil icon to the right
                             else {
-                                pencilOffsetX = max(dx * -1.7, CGFloat(-maxDragWidth) * 1.7)
+                                pencilOffsetX = max(dx * -1.7, -maxDragWidth * 1.7)
+
+                                if editCommitted && !wasEditCommitted {
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                    bounceToken += 1
+                                }
+                                wasEditCommitted = editCommitted
                             }
                             
                             let clamped = min(
-                                max(dx, -CGFloat(maxDragWidth)),
-                                CGFloat(maxDragWidth)
+                                max(dx, -maxDragWidth),
+                                maxDragWidth
                             )
                             offsetX = clamped
                         }
@@ -323,19 +348,21 @@ struct InvestmentAllocationCard : View {
                                 // Reset gesture state for next interaction
                                 isHorizontalGesture = false
                                 gestureLocked = false
+                                wasEditCommitted = false
+                                wasDeleteCommitted = false
                             }
                             
                             guard isHorizontalGesture else { return }
                             
                             let dx = value.translation.width
                             
-                            if dx <= -CGFloat(maxDragWidth) {
-                                offsetX = -CGFloat(maxDragWidth)
+                            if dx <= -maxDragWidth {
+                                offsetX = -maxDragWidth
                                 
                                 withAnimation(.easeInOut) {
                                     onDelete()
                                 }
-                            } else if dx >= CGFloat(maxDragWidth) {
+                            } else if dx >= maxDragWidth {
                                 withAnimation(.easeInOut) {
                                     offsetX = 0
                                     trashOffsetX = 0
