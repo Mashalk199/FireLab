@@ -8,13 +8,13 @@ FireLab is an app that uses your personal financial details to provide a retirem
 - Interactive graphs with custom gestures are also provided to let users visualise their financial journey.
 
 <p align="center">
-  <a href="Docs/result-demo.mp4">
+  <a href="https://youtube.com/shorts/rS9v0fABk6w?feature=share">
     <img src="Docs/investment-view.png" width="250">
   </a>
-  <a href="Docs/result-demo.mp4">
+  <a href="https://youtube.com/shorts/K_gWCs647eM?feature=share">
     <img src="Docs/result-view.png" width="250">
   </a>
-  <a href="Docs/gesture-demo.mp4">
+  <a href="https://youtube.com/shorts/K_gWCs647eM?feature=share">
     <img src="Docs/graph-view.png" width="250">
   </a>
   
