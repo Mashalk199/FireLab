@@ -16,7 +16,9 @@ final class AddInvestmentViewModel: ObservableObject {
     @Published var expectedEtfRet = ""
     @Published var autoCalc = false
     @Published var errorText: String?
-    
+    @Published var currentValue = ""
+    @Published var ownsCurrently: Bool = true
+
 
     let currItem: InvestmentItem
 
@@ -39,6 +41,13 @@ final class AddInvestmentViewModel: ObservableObject {
 
         }
         self.autoCalc = self.currItem.autoCalc
+        
+        if self.currentValue.isEmpty {
+            self.ownsCurrently = false
+        }
+        else {
+            self.ownsCurrently = true
+        }
     }
 
     func attach(inputs: FireInputs) {
@@ -68,6 +77,13 @@ final class AddInvestmentViewModel: ObservableObject {
                 return false
             }
         }
+        if ownsCurrently {
+            guard let currValue = Double(currentValue), currValue >= 0 else {
+                errorText = "Enter current value >= 0"
+                return false
+            }
+            
+        }
 
         
 
@@ -93,7 +109,8 @@ final class AddInvestmentViewModel: ObservableObject {
                 inputs.investmentItems[idx].expectedReturn = (tab == 0 ? expectedEtfRet : expectedBondRet)
                 inputs.investmentItems[idx].etfSnapshot = snapshot
                 inputs.investmentItems[idx].autoCalc = autoCalc
-
+                inputs.investmentItems[idx].currentValue =
+                    ownsCurrently ? currItem.currentValue : ""
         }
         else {
             inputs.investmentItems.append(
@@ -102,6 +119,7 @@ final class AddInvestmentViewModel: ObservableObject {
                     type: tab == 0 ? .etf : .bond,
                     allocationPercent: "",
                     expectedReturn: tab == 0 ? expectedEtfRet : expectedBondRet,
+                    currentValue: ownsCurrently ? currItem.currentValue : "",
                     etfSnapshot: snapshot,
                     autoCalc: autoCalc
                 )

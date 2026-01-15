@@ -72,13 +72,11 @@ struct InvestmentView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.horizontal)
                 VStack(spacing: 20) {
-                    // TODO: When the user slides the card to the left, let it slide 20% through at full opacity, display a trash can on the right, and when the drag gesture is over, the card will automatically delete with a transition towards the leading edge
                     ForEach($inputs.investmentItems) { $item in
                         InvestmentAllocationCard(item: $item,
                                                  onEdit: {
-                            
-                                                        currItem = item
-                                                        goToInvestment = true
+                                                    currItem = item
+                                                    goToInvestment = true
                                                          },
                                                  onDelete: {
                                                      vm.removeItem(item)
@@ -185,10 +183,10 @@ struct InvestmentAllocationCard : View {
 
     var maxDragWidth: CGFloat = 70
     // To make animation look better, we use this additional offset variable
-    @State private var offsetX: CGFloat = 0
+    @State private var cardOffsetX: CGFloat = 0
     @State private var trashOffsetX: CGFloat = 0
     @State private var pencilOffsetX: CGFloat = 0
-    @State private var bounceToken: Int = 0
+    @State private var pencilBounceToken: Int = 0
     @State private var wasEditCommitted = false
     @State private var deleteBounceToken: Int = 0
     @State private var wasDeleteCommitted = false
@@ -212,7 +210,7 @@ struct InvestmentAllocationCard : View {
             Image(systemName: "pencil.circle.fill")
                 .offset(x: pencilOffsetX)
                 .font(.system(size: 35))
-                .symbolEffect(.bounce, value: bounceToken)
+                .symbolEffect(.bounce, value: pencilBounceToken)
             
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.lightGray))
@@ -286,7 +284,7 @@ struct InvestmentAllocationCard : View {
                         .accessibilityLabel(Text("\(item.name), Allocation"))
                     
                 )
-                .offset(x: offsetX)
+                .offset(x: cardOffsetX)
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 8)
                         .onChanged { value in
@@ -332,7 +330,7 @@ struct InvestmentAllocationCard : View {
 
                                 if editCommitted && !wasEditCommitted {
                                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                    bounceToken += 1
+                                    pencilBounceToken += 1
                                 }
                                 wasEditCommitted = editCommitted
                             }
@@ -341,7 +339,7 @@ struct InvestmentAllocationCard : View {
                                 max(dx, -maxDragWidth),
                                 maxDragWidth
                             )
-                            offsetX = clamped
+                            cardOffsetX = clamped
                         }
                         .onEnded { value in
                             defer {
@@ -357,14 +355,14 @@ struct InvestmentAllocationCard : View {
                             let dx = value.translation.width
                             
                             if dx <= -maxDragWidth {
-                                offsetX = -maxDragWidth
+                                cardOffsetX = -maxDragWidth
                                 
                                 withAnimation(.easeInOut) {
                                     onDelete()
                                 }
                             } else if dx >= maxDragWidth {
                                 withAnimation(.easeInOut) {
-                                    offsetX = 0
+                                    cardOffsetX = 0
                                     trashOffsetX = 0
                                     pencilOffsetX = 0
 
@@ -373,7 +371,7 @@ struct InvestmentAllocationCard : View {
                             } else {
                                 // Snap back to center
                                 withAnimation(.easeOut) {
-                                    offsetX = 0
+                                    cardOffsetX = 0
                                     trashOffsetX = 0
                                     pencilOffsetX = 0
                                 }

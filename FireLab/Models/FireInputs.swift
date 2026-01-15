@@ -23,10 +23,10 @@ class FireInputs: ObservableObject {
     /// Outstanding mortgage balance
     @Published var outstandingMortgageText: String = ""
     /// Mortgage yearly interest rate (float whole number out of 100)
-    @Published var weeklyRentText: String = ""
-    /// Mortgage minimum monthly payment
     @Published var mortgageYearlyInterestText: String = ""
     /// Weekly rent
+    @Published var weeklyRentText: String = ""
+    /// Mortgage minimum monthly payment
     @Published var mortgageMinimumPaymentText: String = ""
     /// Sets the housing type of their housing details, whether it's a mortgage or rental
     @Published var housingType: HousingType = .mortgage
@@ -50,6 +50,7 @@ struct InvestmentItem: Identifiable, Codable, Equatable, Hashable {
     var type: InvestmentType
     var allocationPercent: String
     var expectedReturn: String
+    var currentValue: String
     var etfSnapshot: ETFDoc?  // runtime-only (not encoded)
     var autoCalc: Bool
 
@@ -59,6 +60,7 @@ struct InvestmentItem: Identifiable, Codable, Equatable, Hashable {
         type: InvestmentType = .etf,
         allocationPercent: String = "",
         expectedReturn: String = "",
+        currentValue: String = "",
         etfSnapshot: ETFDoc? = nil,
         autoCalc: Bool = false
     ) {
@@ -66,12 +68,13 @@ struct InvestmentItem: Identifiable, Codable, Equatable, Hashable {
         self.type = type
         self.allocationPercent = allocationPercent
         self.expectedReturn = expectedReturn
+        self.currentValue = currentValue
         self.etfSnapshot = etfSnapshot
         self.autoCalc = autoCalc
     }
 
     private enum CodingKeys: String, CodingKey {
-        case name, type, allocationPercent, expectedReturn, autoCalc
+        case name, type, allocationPercent, expectedReturn, currentValue, autoCalc
     }
 }
 

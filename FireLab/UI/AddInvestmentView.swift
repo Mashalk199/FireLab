@@ -22,9 +22,10 @@ struct AddInvestmentView: View {
     @AccessibilityFocusState private var errorFocused: Bool
     @Binding private var currItem: InvestmentItem
 
+
     // take SelectedETF and pass it to the VM
     init(currItem: Binding<InvestmentItem>) {
-        // TODO: Fix the current poor handling of currItem being passed to the viewmodel 
+        // TODO: Fix the current poor handling of currItem being passed to the viewmodel
         _currItem = currItem
         let currentItem = currItem.wrappedValue
         _vm = StateObject(wrappedValue: AddInvestmentViewModel(currItem: currentItem))
@@ -87,123 +88,157 @@ struct AddInvestmentView: View {
                     }
                     .padding([.top, .bottom], 20)
 
-                    //TODO: convert FieldRow and Toggle to common Components component
-                    FieldRow(
+                    InputField(
                         label: "Expected Yearly After-Tax Return",
-                        text: $vm.expectedEtfRet,
-                        placeholder: "%"
+                        fieldVar: $vm.expectedEtfRet,
+                        placeholder: "%",
+                        helpText: nil,
+                        fieldWidth: 150
                     )
 
-                    Toggle(
-                        "Enable machine learning for return predictions",
+                    ToggleRow(
+                        label: "Enable machine learning for return predictions",
                         isOn: $vm.autoCalc
                     )
-                    .padding(.horizontal)
                     .accessibilityLabel("Let FireLab handle yearly return")
                     .accessibilityValue(vm.autoCalc ? "true" : "false")
+
+                    ToggleRow(
+                        label: "I already own this investment",
+                        isOn: $vm.ownsCurrently
+                    )
+
+                    if vm.ownsCurrently {
+                        InputField(
+                            label: "Current Investment Value",
+                            fieldVar: $vm.currentValue,
+                            placeholder: "$",
+                            helpText: nil,
+                            fieldWidth: 150
+                        )
+                    }
                 }
             } else {
                 VStack(spacing: 12) {
-                    FieldRow(
+                    InputField(
                         label: "Bond Name (Optional)",
-                        text: $vm.bondName,
-                        placeholder: "Bond #1"
+                        fieldVar: $vm.bondName,
+                        placeholder: "Bond #1",
+                        helpText: nil,
+                        fieldWidth: 150
                     )
-                    FieldRow(
+                    InputField(
                         label: "Expected Yearly After-Tax Return",
-                        text: $vm.expectedBondRet,
-                        placeholder: "%"
+                        fieldVar: $vm.expectedBondRet,
+                        placeholder: "%",
+                        helpText: nil,
+                        fieldWidth: 150
                     )
+
+                    ToggleRow(
+                        label: "I already own this investment",
+                        isOn: $vm.ownsCurrently
+                    )
+
+                    if vm.ownsCurrently {
+                        InputField(
+                            label: "Current Investment Value",
+                            fieldVar: $vm.currentValue,
+                            placeholder: "$",
+                            helpText: nil,
+                            fieldWidth: 150
+                        )
+                    }
                 }
             }
 
             Spacer()
 
             HStack(spacing: 24) {
-                RoundedBorderButton(title: "Cancel") {
+
+                Button {
                     dismiss()
+                } label: {
+                    SmallButtonView(
+                        text: "Cancel",
+                        fontSize: 18,
+                        icon: nil,
+                        width: 150,
+                        fgColor: .orange,
+                        bgColor: .white,
+                        border: .black,
+                        height: 56
+                    )
                 }
+                .buttonStyle(.plain)
                 .accessibilityLabel("Cancel adding investment")
 
-                RoundedFillButton(title: "Add") {
+                Button {
                     if vm.addInvestmentIfValid(currItem: currItem) {
                         dismiss()
                     } else {
                         errorFocused = true
                     }
+                } label: {
+                    SmallButtonView(
+                        text: "Add",
+                        fontSize: 18,
+                        icon: "checkmark.circle",
+                        width: 150,
+                        fgColor: .white,
+                        bgColor: .orange,
+                        border: .orange,
+                        height: 56
+                    )
                 }
+                .buttonStyle(.plain)
                 .accessibilityLabel("Add investment")
             }
             .padding(.bottom, 14)
         }
         // attach EnvironmentObject after the view exists
-        .onAppear { vm.attach(inputs: inputs) }
+        .onAppear {
+            vm.attach(inputs: inputs)
+            vm.ownsCurrently = !vm.currentValue.isEmpty
+        }
         .onChange(of: vm.errorText) { _, new in
             if let msg = new {
                 UIAccessibility.post(notification: .announcement, argument: "Error: \(msg)")
                 errorFocused = true
             }
         }
+        .onChange(of: vm.ownsCurrently) { _, newValue in
+            if !newValue {
+                vm.currentValue = ""
+            }
+        }
     }
 }
 
-/// This is a component that has a label and a field for the user to input numerical data
-struct FieldRow: View {
-    var label: String
-    @Binding var text: String
-    var placeholder: String
+
+struct ToggleRow: View {
+    let label: String
+    @Binding var isOn: Bool
 
     var body: some View {
-        HStack {
+        HStack(alignment: .center, spacing: 8) {
             Text(label)
-                .frame(width: 200, alignment: .leading)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(1)
+                .frame(width: CGFloat(350 - 150), alignment: .leading)
+                .padding(.leading, 22)
 
-            TextField(placeholder, text: $text)
-                .keyboardType(.decimalPad)
-                .frame(width: 150, height: 35)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(.gray.opacity(0.5))
-                )
+            Spacer()
+
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .padding(.trailing, 22)
         }
-        .frame(width: 350, alignment: .leading)
+        .padding(.vertical, 5)
+        .accessibilityElement(children: .combine)
         .accessibilityLabel(label)
-        .accessibilityValue(text.isEmpty ? "Empty" : text)
-    }
-}
-
-/// This is a cancel navigation button
-struct RoundedBorderButton: View {
-    var title: String
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .foregroundColor(.orange)
-                .frame(width: 133, height: 48)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 40)
-                        .stroke(.black, lineWidth: 1)
-                )
-        }
-    }
-}
-/// This is a filled in "add" navigation button
-struct RoundedFillButton: View {
-    var title: String
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .foregroundColor(.white)
-                .frame(width: 133, height: 48)
-                .background(
-                    RoundedRectangle(cornerRadius: 40)
-                        .fill(Color.orange)
-                )
-        }
+        .accessibilityValue(isOn ? "On" : "Off")
     }
 }
 
