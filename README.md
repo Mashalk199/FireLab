@@ -21,12 +21,13 @@ FireLab is an app that uses your personal financial details to provide a retirem
   <a href="Docs/result-demo.mp4">
     <img src="Docs/investment-view.png" width="250">
   </a>
-  <a href="Docs/gesture-demo.mp4">
-    <img src="Docs/graph-view.png" width="250">
-  </a>
   <a href="Docs/result-demo.mp4">
     <img src="Docs/result-view.png" width="250">
   </a>
+  <a href="Docs/gesture-demo.mp4">
+    <img src="Docs/graph-view.png" width="250">
+  </a>
+  
 </p>
 
 How to run app:
