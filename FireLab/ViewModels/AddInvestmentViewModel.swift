@@ -42,12 +42,8 @@ final class AddInvestmentViewModel: ObservableObject {
         }
         self.autoCalc = self.currItem.autoCalc
         
-        if self.currentValue.isEmpty {
-            self.ownsCurrently = false
-        }
-        else {
-            self.ownsCurrently = true
-        }
+        self.currentValue = currItem.currentValue
+        self.ownsCurrently = !self.currentValue.isEmpty
     }
 
     func attach(inputs: FireInputs) {
@@ -110,7 +106,7 @@ final class AddInvestmentViewModel: ObservableObject {
                 inputs.investmentItems[idx].etfSnapshot = snapshot
                 inputs.investmentItems[idx].autoCalc = autoCalc
                 inputs.investmentItems[idx].currentValue =
-                    ownsCurrently ? currItem.currentValue : ""
+                    ownsCurrently ? self.currentValue : ""
         }
         else {
             inputs.investmentItems.append(
@@ -119,7 +115,7 @@ final class AddInvestmentViewModel: ObservableObject {
                     type: tab == 0 ? .etf : .bond,
                     allocationPercent: "",
                     expectedReturn: tab == 0 ? expectedEtfRet : expectedBondRet,
-                    currentValue: ownsCurrently ? currItem.currentValue : "",
+                    currentValue: ownsCurrently ? self.currentValue : "",
                     etfSnapshot: snapshot,
                     autoCalc: autoCalc
                 )
