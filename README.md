@@ -17,6 +17,18 @@ FireLab is an app that uses your personal financial details to provide a retirem
 - Improve UI for incorporating current asset value
 ## Demo 
 
+<p align="center">
+  <a href="Docs/result-demo.mp4">
+    <img src="Docs/investment-view.png" width="250">
+  </a>
+  <a href="Docs/gesture-demo.mp4">
+    <img src="Docs/graph-view.png" width="250">
+  </a>
+  <a href="Docs/result-demo.mp4">
+    <img src="Docs/result-view.png" width="250">
+  </a>
+</p>
+
 How to run app:
 
 1. Create an account on twelvedata.com
