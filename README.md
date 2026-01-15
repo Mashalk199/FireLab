@@ -1,7 +1,4 @@
 #  Readme
-
-Consider adding sections that explain what the project does, how to set it up, key features, technologies used, and any challenges or future improvements. A clear, well-documented README makes your good version control practices even more valuable.
-
 ## Purpose
 FireLab is an app that uses your personal financial details to provide a retirement plan for you to achieve FIRE (Financial Independence, Retire Early) earliest. 
 ## Key Features
