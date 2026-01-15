@@ -7,7 +7,6 @@ FireLab is an app that uses your personal financial details to provide a retirem
 - Machine learning can be enabled to improve accuracy of retirement calculation by using real-life financial data of real ETF's.
 - Interactive graphs with custom gestures are also provided to let users visualise their financial journey.
 
-## Demo 
 <p align="center">
   <a href="Docs/result-demo.mp4">
     <img src="Docs/investment-view.png" width="250">
