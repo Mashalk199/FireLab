@@ -1,7 +1,4 @@
 #  Readme
-
-Consider adding sections that explain what the project does, how to set it up, key features, technologies used, and any challenges or future improvements. A clear, well-documented README makes your good version control practices even more valuable.
-
 ## Purpose
 FireLab is an app that uses your personal financial details to provide a retirement plan for you to achieve FIRE (Financial Independence, Retire Early) earliest. 
 ## Key Features
@@ -10,7 +7,32 @@ FireLab is an app that uses your personal financial details to provide a retirem
 - Machine learning can be enabled to improve accuracy of retirement calculation by using real-life financial data of real ETF's.
 - Interactive graphs with custom gestures are also provided to let users visualise their financial journey.
 
-## Demo 
+<p align="center">
+  <a href="Docs/result-demo.mp4">
+    <img src="Docs/investment-view.png" width="250">
+  </a>
+  <a href="Docs/result-demo.mp4">
+    <img src="Docs/result-view.png" width="250">
+  </a>
+  <a href="Docs/gesture-demo.mp4">
+    <img src="Docs/graph-view.png" width="250">
+  </a>
+  
+</p>
+
+## Technologies Used
+- CoreML
+- Firebase
+- SwiftData
+- Swift Charts
+- UIKit
+
+
+
+## Future Improvements
+- Handle taxes for user
+- Improve UI for incorporating current asset value
+
 
 How to run app:
 
