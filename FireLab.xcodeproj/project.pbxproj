@@ -16,8 +16,6 @@
 		CA553DEC2E8CF525001FD2D8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA553DEB2E8CF525001FD2D8 /* GoogleService-Info.plist */; };
 		CA553DED2E8CF525001FD2D8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA553DEB2E8CF525001FD2D8 /* GoogleService-Info.plist */; };
 		CA553DEE2E8CF525001FD2D8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA553DEB2E8CF525001FD2D8 /* GoogleService-Info.plist */; };
-		CA833DEE2E99BAF4002C3A43 /* lstm_60.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = CA833DED2E99BAF4002C3A43 /* lstm_60.mlpackage */; };
-		CA833DEF2E99BAF4002C3A43 /* full_lstm.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = CA833DEC2E99BAF4002C3A43 /* full_lstm.mlpackage */; };
 		CA9C48482E6FE09700B603A9 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = CA9C48472E6FE08E00B603A9 /* .gitignore */; };
 		CABBC40F2EBED9CC00126C15 /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = CABBC40E2EBED9C100126C15 /* LICENSE.md */; };
 		CABBC4132EBEDBA500126C15 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = CABBC4122EBEDBA500126C15 /* FirebaseAppCheck */; };
@@ -47,8 +45,6 @@
 		CA3638C82E546A5700F8E067 /* FireLabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireLabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA3638D22E546A5700F8E067 /* FireLabUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FireLabUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA553DEB2E8CF525001FD2D8 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		CA833DEC2E99BAF4002C3A43 /* full_lstm.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = full_lstm.mlpackage; sourceTree = "<group>"; };
-		CA833DED2E99BAF4002C3A43 /* lstm_60.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = lstm_60.mlpackage; sourceTree = "<group>"; };
 		CA9C48472E6FE08E00B603A9 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		CABBC40E2EBED9C100126C15 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		CABE90EF2E9B5606003F666F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -127,8 +123,6 @@
 				CA3638D52E546A5700F8E067 /* FireLabUITests */,
 				CA3638BC2E546A5600F8E067 /* Products */,
 				CA553DEB2E8CF525001FD2D8 /* GoogleService-Info.plist */,
-				CA833DEC2E99BAF4002C3A43 /* full_lstm.mlpackage */,
-				CA833DED2E99BAF4002C3A43 /* lstm_60.mlpackage */,
 				CA0C3D952EE5C13200012A88 /* lstm_monthly.mlpackage */,
 			);
 			sourceTree = "<group>";
@@ -304,8 +298,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA0C3D962EE5C13200012A88 /* lstm_monthly.mlpackage in Sources */,
-				CA833DEE2E99BAF4002C3A43 /* lstm_60.mlpackage in Sources */,
-				CA833DEF2E99BAF4002C3A43 /* full_lstm.mlpackage in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
