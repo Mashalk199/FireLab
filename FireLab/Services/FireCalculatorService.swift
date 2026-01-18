@@ -115,7 +115,6 @@ struct FireCalculatorService {
 
     /** Uses all data gathered from user and calculates the retirement result. */
     func calculateRetirement(inputs: FireInputs) async throws -> Result {
-
         // ----- Monthly expense / FI contribution -----
         var monthlyExpenses: Double = getDouble(inputs.expensesText) / MONTHS_IN_YEAR
         let yearlyTotalFI = max(0.0, getDouble(inputs.FIContributionText))   // yearly total
@@ -139,13 +138,13 @@ struct FireCalculatorService {
             }
         }
 
-        // Future brokerage bucket = ETFs + Bonds
-        let futureBrokerage = inputs.investmentItems.filter { $0.type == .etf || $0.type == .bond }
+        // brokerage bucket = ETFs + Bonds
+        let brokerage = inputs.investmentItems.filter { $0.type == .etf || $0.type == .bond }
 
-        // Weighted nominal hurdle from all future brokerage (for debt avalanche after mins)
+        // Weighted nominal hurdle from all brokerage (for debt avalanche after mins)
         let investHurdleAnnual: Double = {
-            guard !futureBrokerage.isEmpty else { return 0.0 }
-            let weighted = futureBrokerage.map {
+            guard !brokerage.isEmpty else { return 0.0 }
+            let weighted = brokerage.map {
                 (max(0.0, getDouble($0.allocationPercent)) / 100.0) *
                 (max(0.0, getDouble($0.expectedReturn) / 100.0))
             }.reduce(0, +)
@@ -342,17 +341,11 @@ struct FireCalculatorService {
         let months_during_super   = Int(7.0 * MONTHS_IN_YEAR)   // 7 years in months
 
         // “future” brokerage bucket (from futureBrokerage)
-        let brkWeights = futureBrokerage.map { max(0.0, getDouble($0.allocationPercent) / 100.0) }
-        let brkFactors = futureBrokerage.map {
+        let brkWeights = brokerage.map { max(0.0, getDouble($0.allocationPercent) / 100.0) }
+        let brkFactors = brokerage.map {
             getMonthlyReturn(max(0.0, getDouble($0.expectedReturn) / 100.0), annual_inflation)
         }
 
-        // current holdings bucket (PortfolioItem): grow only, withdraw value-weighted (EXCLUDE super)
-        let nonSuperPortfolio = inputs.portfolioItems.filter { $0.type != .superannuation }
-        let currFactors = nonSuperPortfolio.map {
-            getMonthlyReturn(max(0.0, getDouble($0.expectedReturn) / 100.0), annual_inflation)
-        }
-        let startCurr   = nonSuperPortfolio.map { max(0.0, getDouble($0.value)) }
 
         // super
         let superFactor = superGrowthRate
@@ -362,22 +355,23 @@ struct FireCalculatorService {
         var minProp = 0.0, maxProp = 1.0
 
         // Epoch seeds
-        var brokerListGrowth = Array(repeating: 0.0, count: futureBrokerage.count)
+        var initBrokerListGrowth: [Double] = brokerage.map { max(0.0, getDouble($0.currentValue)) }
         let currentSuperStart = inputs.portfolioItems
             .filter { $0.type == .superannuation }
             .map { max(0.0, getDouble($0.value)) }
             .reduce(0, +)
+        
+        var brokerListGrowth = initBrokerListGrowth
 
         var superGrowth = currentSuperStart
         // Keeps track of how much the user is currently expected to work (now in months)
         var workingMonths = 0
 
-        print("futureBrokerage.count =", futureBrokerage.count)
-        print("startCurr (existing brokerage) =", startCurr.reduce(0,+))
+        print("futureBrokerage.count =", brokerage.count)
 
         var epochIndex = 0
         var series: [Double] = []
-        for _ in 1...8 {
+        for _ in 1...12 {
             epochIndex += 1
             series.removeAll()
             // epoch start prints
@@ -385,18 +379,17 @@ struct FireCalculatorService {
             print("\n--- Epoch \(epochIndex) start (monthly) ---")
 
             print("Initial template debts: [\(initDebts)]")
-            brokerListGrowth = Array(repeating: 0.0, count: futureBrokerage.count)
+            brokerListGrowth = initBrokerListGrowth
             superGrowth = currentSuperStart
             workingMonths = 0
             // Flags keep track of whether user retired on brokerage and/or on super
             var retiredBroker = false
             var retiredSuper  = false
 
-            var currB = startCurr
             var debtsTemplate = debts // continue accruing mins/interest in Phase C
 
             /* Runs while the number of months of work (workingMonths) is less than the months it takes to reach 67
-                as by then the user will retire, and while the user isn't retired. */
+                (as by then the user will retire), and while the user isn't retired. */
             while (workingMonths < months_to_67) && !(retiredBroker && retiredSuper) {
                 // Accrue interest on debts for this month (Phase C accrual)
                 for i in debtsTemplate.indices where debtsTemplate[i].balance > eps {
@@ -438,13 +431,11 @@ struct FireCalculatorService {
                 superGrowth += superCont
                 superGrowth *= superFactor
 
-                // grow current holdings (no contributions)
-                for i in currB.indices { currB[i] *= currFactors[i] }
 
                 workingMonths += 1
 
                 // Append to series every month during the working stage
-                series.append(brokerListGrowth.reduce(0,+) + currB.reduce(0,+))
+                series.append(brokerListGrowth.reduce(0,+))
 
                 if workingMonths % 12 == 0 {
                     let hb = debtsTemplate.map { String(format: "%.2f", $0.balance) }.joined(separator: ", ")
@@ -454,10 +445,9 @@ struct FireCalculatorService {
                 // brokerage pre-60 feasibility (in months)
                 var retiredMonths_tmp = 0
                 var portfolioList   = brokerListGrowth
-                var tempCurr        = currB
                 var tempDebts       = debtsTemplate
 
-                func sumAll() -> Double { portfolioList.reduce(0,+) + tempCurr.reduce(0,+) }
+                func sumAll() -> Double { portfolioList.reduce(0,+) }
 
                 /* Here, at the current workingMonths, we reduce the current value of the brokerage investment to basically
                  zero over a period of time, to see whether the user can retire on it until the age of 60 or not.
@@ -468,8 +458,6 @@ struct FireCalculatorService {
                       !retiredBroker &&
                       (workingMonths + retiredMonths_tmp < months_to_60) {
 
-                    // Grow past portfolio and future brokerage
-                    for i in tempCurr.indices { tempCurr[i] *= currFactors[i] }
                     for j in portfolioList.indices {
                         /* The time since the simulation beginning is given by workingMonths +
                         retiredMonths_tmp, the amount of months we've currently attempted retiring on. */
@@ -491,10 +479,8 @@ struct FireCalculatorService {
                     }
 
                     if monthlyDebtDue > 0 {
-                        // First pay off debt minimums with past portfolio
-                        var leftover = withdrawProRata(&tempCurr, weights: nil, amount: monthlyDebtDue)
-                        // Pay remaining with current brokerage investments
-                        if leftover > 0 { leftover = withdrawProRata(&portfolioList, weights: brkWeights, amount: leftover) }
+                        // Pay remaining with brokerage investments
+                        var leftover = withdrawProRata(&portfolioList, weights: brkWeights, amount: monthlyDebtDue)
                         // reflect paid mins
                         var toReduce = monthlyDebtDue - max(0.0, leftover)
                         // Reduce debt value by how much was paid
@@ -509,9 +495,7 @@ struct FireCalculatorService {
                     }
 
                     // Pay living expenses via withdrawal from current brokerage, then from the past portfolio
-                    var rem = monthlyExpenses
-                    rem = withdrawProRata(&tempCurr, weights: nil, amount: rem)
-                    if rem > 0 { rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: rem) }
+                    var rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: monthlyExpenses)
                     if rem > 1e-9 { break } // couldn’t cover this month. break feasibility for brokerage
 
                     retiredMonths_tmp += 1
@@ -527,7 +511,7 @@ struct FireCalculatorService {
                 // balance AT 60 if user retires now
                 var temp_super   = superGrowth * pow(superFactor, Double(remain_to_60))
                 var retiredSuperMonths_tmp = 0
-                var tempDebtsSuper = debtsTemplate
+                var tempDebtsSuper = tempDebts
 
                 // Super is also reduced to 0, to see whether retirement is possible
                 while temp_super >= monthlyExpenses && !retiredSuper {
@@ -573,19 +557,17 @@ struct FireCalculatorService {
             // recompute full depletion lengths for “gradient”
             var totalRetiredMonths = 0
             var portfolioList = brokerListGrowth
-            var tempCurr = currB
             var tempDebtsGrad = debtsTemplate
 
             /* Here we see the magnitude of how long the brokerage investment will last the user
              without stopping the reduction of the value of the brokerage when the user reaches the
              age of preservation. The value will keep decreasing until it is basically zero. This gives the
              actual value of how long the investment could fully last*/
-            while (portfolioList.reduce(0,+) + tempCurr.reduce(0,+)) >= monthlyExpenses {
+            while (portfolioList.reduce(0,+)) >= monthlyExpenses {
                 for i in tempDebtsGrad.indices where tempDebtsGrad[i].balance > eps {
                     tempDebtsGrad[i].balance *= tempDebtsGrad[i].monthlyFactor
                 }
                 // Grow
-                for i in tempCurr.indices { tempCurr[i] *= currFactors[i] }
                 for j in portfolioList.indices {
                     /* The time since the simulation beginning is given by workingMonths +
                     totalRetiredMonths, the amount of months we've currently attempted retiring on. */
@@ -602,8 +584,7 @@ struct FireCalculatorService {
                 var monthlyDebtDue = 0.0
                 for d in tempDebtsGrad where d.balance > eps { monthlyDebtDue += min(d.minMonthly, d.balance) }
                 if monthlyDebtDue > 0 {
-                    var left = withdrawProRata(&tempCurr, weights: nil, amount: monthlyDebtDue)
-                    if left > 0 { left = withdrawProRata(&portfolioList, weights: brkWeights, amount: left) }
+                    var left = withdrawProRata(&portfolioList, weights: brkWeights, amount: monthlyDebtDue)
                     var toReduce = monthlyDebtDue - max(0.0, left)
                     for i in tempDebtsGrad.indices where toReduce > 0 && tempDebtsGrad[i].balance > eps {
                         let due = min(tempDebtsGrad[i].minMonthly, tempDebtsGrad[i].balance)
@@ -614,14 +595,13 @@ struct FireCalculatorService {
                 }
 
                 // Pay living expenses
-                var rem = withdrawProRata(&tempCurr, weights: nil, amount: monthlyExpenses)
-                if rem > 0 { rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: rem) }
+                var rem = withdrawProRata(&portfolioList, weights: brkWeights, amount: monthlyExpenses)
                 if rem > 1e-9 { break }
 
                 // Record monthly progress during depletion (to age 60) using the live depletion state
                 let currentMonth = workingMonths + totalRetiredMonths
                 if currentMonth <= months_to_60 {
-                    series.append( portfolioList.reduce(0,+) + tempCurr.reduce(0,+) )
+                    series.append( portfolioList.reduce(0,+) )
                 }
                 // Stop collecting beyond age 60 for the “retired stage” series
                 if currentMonth >= months_to_60 { break }

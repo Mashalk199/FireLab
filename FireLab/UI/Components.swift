@@ -48,7 +48,7 @@ struct InputField : View {
                 .fixedSize(horizontal: false, vertical: true)
                 .layoutPriority(1)
             
-                .frame(width: CGFloat(350 - (fieldWidth ?? 150)), alignment: .leading)
+                .frame(width: CGFloat(200), alignment: .leading)
                 .overlay(alignment: .trailing) {
                             if let message = helpText {
                                 HelpPopover(message: message)
@@ -62,13 +62,14 @@ struct InputField : View {
             TextField(placeholder,
                       text: $fieldVar)
             .keyboardType(.decimalPad)
-            .frame(width: CGFloat(fieldWidth ?? 150), height: 35)
+            .frame(width: CGFloat(150), height: 35)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(.gray.opacity(0.5))
             )
             .padding(.trailing, 22)
         }
+        .frame(width: CGFloat(fieldWidth ?? 350))
         .padding(.vertical, 5)
         // We will also add accessibility labels
         .accessibilityElement(children: .ignore)
@@ -77,6 +78,26 @@ struct InputField : View {
         .accessibilityHint(Text(helpText ?? ""))
     }
 }
+
+/// Implements a basic date input field.
+struct DateField : View {
+    var text: String
+    var DOB: Binding<Date>
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Text(text)
+                .frame(width: 200, alignment: .leading)
+            Spacer()
+            DatePicker("",
+                       selection: DOB,
+                       displayedComponents: [.date])
+            .frame(width: 150, height: 35)
+            .accessibilityLabel(text)
+        }
+        .frame(width:CGFloat(350))
+    }
+}
+
 
 /// This medium button is used on screen 2, the AddDetailsHub. Giving users different options for different features they can use.
 struct MediumButton<Destination: View>: View {
@@ -221,23 +242,6 @@ struct HelpPopover: View {
     }
 }
 
-/// Implements a basic date input field.
-struct DateField : View {
-    var text: String
-    var DOB: Binding<Date>
-    var body: some View {
-        HStack {
-            Text(text)
-                .frame(width: 200, alignment: .leading)
-            DatePicker("",
-                       selection: DOB,
-                       displayedComponents: [.date])
-            .frame(width: 150, height: 35)
-            .accessibilityLabel(text)
-        }
-        .frame(width:300)
-    }
-}
 
 
 
@@ -252,6 +256,7 @@ struct DateField : View {
 
 private struct PreviewHarness: View {
     @State private var textField = ""
+    @State private var dateField = Date()
     @State private var loanItems: [LoanItem] = [
         LoanItem(name: "HELP Loan", outstandingBalance: "40000", interestRate: "3.5", minimumPayment: "400"),
         LoanItem(name: "Car Loan",  outstandingBalance: "100000", interestRate: "5.5", minimumPayment: "10000"),
@@ -282,6 +287,7 @@ private struct PreviewHarness: View {
                 }
 
                 InputField(label: "Loan Name", fieldVar: $textField, placeholder: "", fieldWidth: 200)
+                DateField(text: "Date", DOB: $dateField)
             }
             .padding()
         }

@@ -12,6 +12,7 @@ final class AddInvestmentViewModel: ObservableObject {
     // moved from View
     @Published var tab: Int = 0   // 0: ETF, 1: Bond
     @Published var bondName = ""
+    @Published var superName = ""
     @Published var expectedBondRet = ""
     @Published var expectedEtfRet = ""
     @Published var autoCalc = false
@@ -39,6 +40,11 @@ final class AddInvestmentViewModel: ObservableObject {
             self.expectedBondRet = self.currItem.expectedReturn
             self.bondName = self.currItem.name
 
+        }
+        else if self.currItem.type == .superannuation {
+            self.tab = 2
+            self.expectedBondRet = self.currItem.expectedReturn
+            self.bondName = self.currItem.name
         }
         self.autoCalc = self.currItem.autoCalc
         

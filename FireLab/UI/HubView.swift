@@ -81,11 +81,6 @@ struct HubView: View {
                 LoanDetailsView()
             }
             
-            MediumButton(text: "Investment Portfolio",
-                         hint: "Opens current portfolio details page") {
-                PortfolioDetailsView()
-            }
-            
             Spacer()
             HStack(spacing: 20) {
                 Spacer()

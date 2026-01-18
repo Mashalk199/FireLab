@@ -59,6 +59,9 @@ struct AddInvestmentView: View {
                 Text("Bond").tag(1)
                     .accessibilityLabel("Bond")
                     .accessibilityHint("Select to enter details about a bond investment")
+                Text("Super").tag(2)
+                    .accessibilityLabel("Bond")
+                    .accessibilityHint("Select to enter details about a bond investment")
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
@@ -118,7 +121,7 @@ struct AddInvestmentView: View {
                         )
                     }
                 }
-            } else {
+            } else if vm.tab == 1 {
                 VStack(spacing: 12) {
                     InputField(
                         label: "Bond Name (Optional)",
@@ -150,6 +153,19 @@ struct AddInvestmentView: View {
                         )
                     }
                 }
+            } else if vm.tab == 2 {
+                InputField(
+                    label: "Super Name",
+                    fieldVar: $vm.superName,
+                    placeholder: "Name"
+                )
+                .padding(.top, 15)
+                
+                InputField(
+                    label: "Super Value",
+                    fieldVar: $vm.currentValue,
+                    placeholder: "$"
+                )
             }
 
             Spacer()
@@ -226,7 +242,7 @@ struct ToggleRow: View {
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .layoutPriority(1)
-                .frame(width: CGFloat(350 - 150), alignment: .leading)
+                .frame(width: CGFloat(200), alignment: .leading)
                 .padding(.leading, 22)
 
             Spacer()
