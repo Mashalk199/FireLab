@@ -17,8 +17,18 @@ struct LoanDetailsView: View {
     var body: some View {
         FireLogo()
             .padding(.bottom, 20)
+        
         Text("Loans")
             .font(.headline)
+            .padding(.bottom, 5)
+
+        
+        Text("Include your mortgage, car loans, student loans, and any other debts.")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
+        
         ScrollView {
             VStack(spacing: 20) {
                 // NOTE: kept your binding-based iteration;

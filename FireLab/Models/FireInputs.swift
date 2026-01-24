@@ -18,8 +18,10 @@ class FireInputs: ObservableObject {
     @Published var FIContributionText: String = ""
     /// Yearly inflation rate (float whole number out of 100)
     @Published var inflationRateText: String = ""
-    /// Yearly after-tax growth rate (float whole number out of 100)
-    @Published var superGrowthRateText: String = ""
+    /// Yearly income
+    @Published var yearlyIncomeText: String = ""
+    /// Superannuation object containing all superannuation details
+    @Published var superannuation: Superannuation = Superannuation()
     /// Outstanding mortgage balance
     @Published var outstandingMortgageText: String = ""
     /// Mortgage yearly interest rate (float whole number out of 100)
@@ -95,7 +97,6 @@ extension FireInputs {
 
         // Economy
         i.inflationRateText = "2.5"
-        i.superGrowthRateText = "5.0"
 
         // Housing
         i.housingType = .rent
@@ -163,7 +164,8 @@ extension FireInputs {
             PortfolioItem(name: "Old ETF A", type: .etf,            value: "12000", expectedReturn: "4.5"),
             PortfolioItem(name: "Old ETF B", type: .etf,            value: "8000",  expectedReturn: "3.5"),
             PortfolioItem(name: "Old ETF C", type: .etf,            value: "5000",  expectedReturn: "5.5"),
-            PortfolioItem(name: "My Super",  type: .superannuation, value: "25000", expectedReturn: i.superGrowthRateText)
+            // TODO: Mock the super data
+//            PortfolioItem(name: "My Super",  type: .superannuation, value: "25000", expectedReturn: i.superGrowthRateText)
         ]
 
         // Debts
@@ -193,4 +195,13 @@ struct PortfolioItem: Identifiable, Hashable, Codable {
     private enum CodingKeys: String, CodingKey {
            case name, type, value, expectedReturn
        }
+}
+struct Superannuation {
+    var value: String = ""
+    var expectedReturn: String = ""
+    var salary: String = ""
+    var employerPercentage: String = ""
+    var concessional: String = ""
+    var nonConcessional: String = ""
+    var retirementMultiplier: String = ""
 }

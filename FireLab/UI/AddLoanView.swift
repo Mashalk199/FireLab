@@ -19,23 +19,10 @@ struct AddLoanView: View {
         FireLogo()
             .padding([.bottom], 20)
 
-        if let msg = vm.errorText {
-            Text(msg)
-                .foregroundStyle(.red)
-                .font(.footnote)
-                .multilineTextAlignment(.center)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 400, alignment: .center)
-                .padding(.horizontal)
-                // Accessibility: mark and focus the error
-                .accessibilityLabel("Error: \(msg)")
-                .accessibilityHint("Fix the fields below, then try again.")
-                // read before other content
-                .accessibilitySortPriority(1000)
-                .accessibilityAddTraits(.isStaticText)
-                .accessibilityFocused($errorFocused)
-        }
+        FormErrorText(
+            message: vm.errorText,
+            isFocused: $errorFocused
+        )
 
         VStack {
             InputField(

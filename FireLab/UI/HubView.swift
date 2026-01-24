@@ -20,32 +20,18 @@ struct HubView: View {
             
             FireLogo()
                 .padding([.bottom], 20)
-            // Here we display the error message if it has been set.
-            if let msg = vm.errorText {
-                Text(msg)
-                    .foregroundStyle(.red)
-                    .font(.footnote)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: 400, alignment: .center)
-                    .padding(.horizontal)
-                
-                    // Accessibility: mark and focus the error
-                    .accessibilityLabel("Error: \(msg)")
-                    .accessibilityHint("Fix the fields below, then try again.")
-                    // read before other content
-                    .accessibilitySortPriority(1000)
-                    .accessibilityAddTraits(.isStaticText)
-                
-                    .accessibilityFocused($errorFocused)
-                }
+            
+            FormErrorText(
+                message: vm.errorText,
+                isFocused: $errorFocused
+            )
+            
             DateField(
                 text: "Date of birth",
                 DOB: $inputs.dateOfBirth)
             
             InputField(
-                label: "Yearly Non-housing Expenses",
+                label: "Yearly non-loan expenses",
                 fieldVar: $inputs.expensesText,
                 placeholder: "$")
 
@@ -54,31 +40,22 @@ struct HubView: View {
                 label: "Yearly FI Contribution",
                 fieldVar: $inputs.FIContributionText,
                 placeholder: "$",
-                helpText: "FIRE/FI = Financial Independence. How much will you pay towards all loans and investments, including mortgage.")
+                helpText: "FIRE/FI = Financial Independence. FI contribution is how much will you pay towards all loans and investments.")
 
             
             InputField(
-                label: "Assumed Inflation Rate",
+                label: "Assumed inflation rate",
                 fieldVar: $inputs.inflationRateText,
                 placeholder: "%")
             
-            InputField(
-                label: "Assumed Super After-Tax Growth Rate",
-                fieldVar: $inputs.superGrowthRateText,
-                placeholder: "%")
             
-            Text("Add details:")
-                .padding(.top, 20)
-            
-            MediumButton(text: "Housing",
-                         hint: "Opens housing details page") {
-                HousingDetailsView()
-            }
-            
-            
-            MediumButton(text: "Other Loans",
+            MediumButton(text: "Add Loans",
                          hint: "Opens other loans details page") {
                 LoanDetailsView()
+            }
+            MediumButton(text: "Superannuation",
+                         hint: "Opens superannuation details page") {
+                SuperDetailsView()
             }
             
             Spacer()
@@ -109,7 +86,11 @@ struct HubView: View {
             }
         }
         // We attach fireinputs to the viewmodel once the current view has mounted and gains access to the object
-        .onAppear { vm.attach(inputs: inputs) }
+        .onAppear {
+            vm.attach(inputs: inputs)
+            // Clears the error message when we come back to this screen
+            vm.errorText = nil
+}
         .navigationDestination(isPresented: $goNext) {
                     InvestmentView()
                 }

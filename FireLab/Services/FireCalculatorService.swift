@@ -122,7 +122,7 @@ struct FireCalculatorService {
         let monthlyFI     = monthlyTotal                                     // alias for clarity
 
         let annual_inflation: Double = getDouble(inputs.inflationRateText) / 100.0
-        let superAnnual: Double      = getDouble(inputs.superGrowthRateText) / 100.0
+        let superAnnual: Double      = 9999999
         let superGrowthRate          = getMonthlyReturn(superAnnual, annual_inflation)
 
         // explicit branch by user choice

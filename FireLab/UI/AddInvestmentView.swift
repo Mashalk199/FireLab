@@ -36,21 +36,10 @@ struct AddInvestmentView: View {
             FireLogo()
                 .padding(.top, 8)
 
-            if let msg = vm.errorText {
-                Text(msg)
-                    .foregroundStyle(.red)
-                    .font(.footnote)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: 400, alignment: .center)
-                    .padding(.horizontal)
-                    .accessibilityLabel("Error: \(msg)")
-                    .accessibilityHint("Fix the fields below, then try again.")
-                    .accessibilitySortPriority(1000)
-                    .accessibilityAddTraits(.isStaticText)
-                    .accessibilityFocused($errorFocused)
-            }
+            FormErrorText(
+                message: vm.errorText,
+                isFocused: $errorFocused
+            )
 
             Picker("Investment type", selection: $vm.tab) {
                 Text("ETF").tag(0)
@@ -232,31 +221,6 @@ struct AddInvestmentView: View {
 }
 
 
-struct ToggleRow: View {
-    let label: String
-    @Binding var isOn: Bool
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            Text(label)
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
-                .layoutPriority(1)
-                .frame(width: CGFloat(200), alignment: .leading)
-                .padding(.leading, 22)
-
-            Spacer()
-
-            Toggle("", isOn: $isOn)
-                .labelsHidden()
-                .padding(.trailing, 22)
-        }
-        .padding(.vertical, 5)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(label)
-        .accessibilityValue(isOn ? "On" : "Off")
-    }
-}
 
 #Preview {
     NavigationStack {

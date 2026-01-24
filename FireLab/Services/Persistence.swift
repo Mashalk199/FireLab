@@ -41,7 +41,6 @@ struct FireInputsSnapshot: Codable {
     var expensesText: String
     var FIContributionText: String
     var inflationRateText: String
-    var superGrowthRateText: String
     var outstandingMortgageText: String
     var weeklyRentText: String
     var mortgageYearlyInterestText: String
@@ -71,7 +70,6 @@ extension FireInputs {
             expensesText: self.expensesText,
             FIContributionText: self.FIContributionText,
             inflationRateText: self.inflationRateText,
-            superGrowthRateText: self.superGrowthRateText,
             outstandingMortgageText: self.outstandingMortgageText,
             weeklyRentText: self.weeklyRentText,
             mortgageYearlyInterestText: self.mortgageYearlyInterestText,
@@ -90,7 +88,6 @@ extension FireInputs {
         self.expensesText = s.expensesText
         self.FIContributionText = s.FIContributionText
         self.inflationRateText = s.inflationRateText
-        self.superGrowthRateText = s.superGrowthRateText
         self.outstandingMortgageText = s.outstandingMortgageText
         self.weeklyRentText = s.weeklyRentText
         self.mortgageYearlyInterestText = s.mortgageYearlyInterestText

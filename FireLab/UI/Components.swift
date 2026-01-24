@@ -9,23 +9,6 @@ import Foundation
 import SwiftUI
 /// This Components file is where all the common components in the app will be retrieved from, such as navigation buttons and input fields.
 
-/// This BigButton is displayed on the first page, letting users decide whether to perform a new calculation or visit past calculations.
-struct BigButton : View {
-    var text: String
-    var hint: String
-    var body: some View {
-        Text(text)
-            .font(.system(size: 36))
-            .frame(width: 353, height: 127)
-            .foregroundColor(.orange)
-            .overlay(
-                RoundedRectangle(cornerRadius: 40)
-                    .stroke(Color.black, lineWidth: 1)
-            )
-            .accessibilityLabel(text)
-            .accessibilityHint(hint)
-    }
-}
 
 /// This input field is a component to be used all throughout the program to retrieve any data, numeric or textual.
 struct InputField : View {
@@ -34,6 +17,7 @@ struct InputField : View {
     var placeholder: String
     var helpText: String?
     var fieldWidth: Int?
+    var helpPadding: CGFloat?
     
     let formatter: NumberFormatter = {
             let formatter = NumberFormatter()
@@ -52,7 +36,7 @@ struct InputField : View {
                 .overlay(alignment: .trailing) {
                             if let message = helpText {
                                 HelpPopover(message: message)
-                                    .padding(.leading, 8)
+                                    .offset(x: helpPadding ?? 8)
                                     .foregroundColor(.orange)
                             }
                         }
@@ -98,6 +82,51 @@ struct DateField : View {
     }
 }
 
+struct ToggleRow: View {
+    let label: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Text(label)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(1)
+                .frame(width: CGFloat(200), alignment: .leading)
+                .padding(.leading, 22)
+
+            Spacer()
+
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .frame(width: CGFloat(150), alignment: .trailing)
+                .padding(.trailing, 22)
+            
+        }
+        .padding(.vertical, 5)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityValue(isOn ? "On" : "Off")
+    }
+}
+
+/// This BigButton is displayed on the first page, letting users decide whether to perform a new calculation or visit past calculations.
+struct BigButton : View {
+    var text: String
+    var hint: String
+    var body: some View {
+        Text(text)
+            .font(.system(size: 36))
+            .frame(width: 353, height: 127)
+            .foregroundColor(.orange)
+            .overlay(
+                RoundedRectangle(cornerRadius: 40)
+                    .stroke(Color.black, lineWidth: 1)
+            )
+            .accessibilityLabel(text)
+            .accessibilityHint(hint)
+    }
+}
 
 /// This medium button is used on screen 2, the AddDetailsHub. Giving users different options for different features they can use.
 struct MediumButton<Destination: View>: View {
@@ -242,8 +271,31 @@ struct HelpPopover: View {
     }
 }
 
+/// This is a form error text component that is used in every form in the app
+struct FormErrorText: View {
+    let message: String?
+    @AccessibilityFocusState.Binding var isFocused: Bool
 
-
+    var body: some View {
+        if let msg = message {
+            Text(msg)
+                .foregroundStyle(.red)
+                .font(.footnote)
+                .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 400, alignment: .center)
+                .padding(.horizontal)
+                // Accessibility: mark and focus the error
+                .accessibilityLabel("Error: \(msg)")
+                .accessibilityHint("Fix the fields below, then try again.")
+                // read before other content
+                .accessibilitySortPriority(1000)
+                .accessibilityAddTraits(.isStaticText)
+                .accessibilityFocused($isFocused)
+        }
+    }
+}
 
 
 
@@ -286,7 +338,7 @@ private struct PreviewHarness: View {
                     Text("This is the destination view").font(.title).padding()
                 }
 
-                InputField(label: "Loan Name", fieldVar: $textField, placeholder: "", fieldWidth: 200)
+                InputField(label: "Loan Name", fieldVar: $textField, placeholder: "", helpText: "Testing", fieldWidth: 200, helpPadding: 20)
                 DateField(text: "Date", DOB: $dateField)
             }
             .padding()

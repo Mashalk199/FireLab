@@ -42,24 +42,9 @@ struct HousingDetailsView: View {
                     .accessibilityFocused($errorFocused)
             }
             
-            Text("Are you renting or do you have a mortgage?")
-            
-            Picker("Housing type", selection: $inputs.housingType) {
-                Text("Mortgage").tag(HousingType.mortgage)
-                    .accessibilityLabel("Mortgage")
-                    .accessibilityHint("Select to enter details about your mortgage")
-                
-                Text("Rent").tag(HousingType.rent)
-                    .accessibilityLabel("Rent")
-                    .accessibilityHint("Select to enter details about your rental house")
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-            .accessibilityLabel("Select housing type")
-            
+            Text("Enter mortgage details")
             VStack(spacing: 14) {
                 // If housing type is either mortgage or rent, display the appropriate input fields
-                if inputs.housingType == .mortgage {
                     InputField(label: "Outstanding Mortgage Balance",
                                fieldVar: $inputs.outstandingMortgageText,
                                placeholder: "$")
@@ -72,13 +57,6 @@ struct HousingDetailsView: View {
                     InputField(label: "Mortgage Minimum Monthly Payment",
                                fieldVar: $inputs.mortgageMinimumPaymentText,
                                placeholder: "$")
-                }
-                else if inputs.housingType == .rent {
-                    InputField(label: "Weekly Rent",
-                               fieldVar: $inputs.weeklyRentText,
-                               placeholder: "$")
-                    .padding(.top, 15)
-                }
             }
             
             Spacer()
