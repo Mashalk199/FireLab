@@ -31,7 +31,7 @@ FireLab is an app that uses your personal financial details to provide a retirem
 
 ## Future Improvements
 - Handle taxes for user
-- Improve UI for incorporating current asset value
+- Add custom loading animations.
 
 
 How to run app:
