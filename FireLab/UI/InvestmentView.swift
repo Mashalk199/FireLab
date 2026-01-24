@@ -59,6 +59,7 @@ struct InvestmentView: View {
                 VStack(spacing: 20) {
                     ForEach($inputs.investmentItems) { $item in
                         InvestmentAllocationCard(item: $item,
+                                                 maxDragWidth: 70,
                                                  onEdit: {
                                                     currItem = item
                                                     goToInvestment = true
@@ -156,216 +157,82 @@ struct InvestmentView: View {
     }
 }
 
+
 /** This is used in the InvestmentView screen which displays all user-selected investments in a format of a list
  of cards, and each card has a small field inside that lets the user type in a percentage allocation they want to set for
  a particular investment. */
 struct InvestmentAllocationCard : View {
     @Binding var item: InvestmentItem
+    var maxDragWidth: CGFloat
     var onEdit: () -> Void
     var onDelete: () -> Void
-    @State private var isHorizontalGesture = false
-    @State private var gestureLocked = false
-
-    var maxDragWidth: CGFloat = 70
-    // To make animation look better, we use this additional offset variable
-    @State private var cardOffsetX: CGFloat = 0
-    @State private var trashOffsetX: CGFloat = 0
-    @State private var pencilOffsetX: CGFloat = 0
-    @State private var pencilBounceToken: Int = 0
-    @State private var wasEditCommitted = false
-    @State private var deleteBounceToken: Int = 0
-    @State private var wasDeleteCommitted = false
-
-    private var editCommitted: Bool {
-        pencilOffsetX <= -maxDragWidth * 1.7
-    }
-    
-    private var deleteCommitted: Bool {
-        trashOffsetX >= maxDragWidth * 1.7
-    }
 
     
     var body: some View {
-        ZStack {
-            
-            Image(systemName: "trash.circle.fill")
-                .offset(x: trashOffsetX)
-                .font(.system(size: 35))
-                .symbolEffect(.bounce, value: deleteBounceToken)
-            Image(systemName: "pencil.circle.fill")
-                .offset(x: pencilOffsetX)
-                .font(.system(size: 35))
-                .symbolEffect(.bounce, value: pencilBounceToken)
-            
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(.lightGray))
-                .frame(width: 215, height: 200)
-                .overlay(alignment: .topTrailing) {
-                    // Add .destructive annotation as per accessibility HIG
-                    Button(role: .destructive) {
-                        // Adds animation for specifically when the card is removed
-                        withAnimation(.easeInOut) {
-                            onDelete()
-                        }
-                    } label: {
-                        Image(systemName: "x.circle")
-                            .font(.system(size: 25, weight: .bold))
-                            .padding(10)
-                        // Hides this icon from being dictated by voiceover
-                            .accessibilityHidden(true)
-                    }
-                    .accessibilityLabel("Delete \(item.name) investment")
-                    .accessibilityHint("Removes this investment from the list")
-                }
-                .overlay(
-                    VStack {
-                        Text(item.name)
-                            .font(.system(size: 20, weight: .black))
-                            .frame(width: 170, alignment: .leading)
-                            .lineLimit(nil)
-                            .fixedSize(horizontal: false, vertical: true)
-                        
+        ItemCard(
+            rectWidth: 215,
+            rectHeight: 200,
+            maxDragWidth: maxDragWidth,
+            deleteAccLabel: "Delete \(item.name) investment",
+            deleteAccHint: "Removes \(item.name) from your investment list",
+            onEdit: onEdit,
+            onDelete: onDelete
+        ) {
+            VStack {
+                Text(item.name)
+                    .font(.system(size: 20, weight: .black))
+                    .frame(width: 170, alignment: .leading)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                HStack {
+                    Text("Investment Portfolio Allocation")
+                        .frame(width:100, alignment: .center)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .foregroundColor(Color.white)
+                        TextField("%",
+                                  text: $item.allocationPercent)
+                        .keyboardType(.decimalPad)
+                        .padding(.leading, 8)
+                        .accessibilityLabel("\(item.name) investment allocation percentage")
+                        .accessibilityValue(
+                            Text(item.allocationPercent.isEmpty
+                                 ? "Empty"
+                                 : "\(item.allocationPercent) percent")
+                        )
+                        .accessibilityHint("Edit the allocation percentage")
+                        // Adds a clear button to make it easy to clear the allocation of for percentages, improving the user experience
                         HStack {
-                            Text("Investment Portfolio Allocation")
-                                .frame(width:100, alignment: .center)
-                                .lineLimit(nil)
-                                .fixedSize(horizontal: false, vertical: true)
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .foregroundColor(Color.white)
-                                TextField("%",
-                                          text: $item.allocationPercent)
-                                .keyboardType(.decimalPad)
-                                .padding(.leading, 8)
-                                .accessibilityLabel("\(item.name) investment allocation percentage")
-                                .accessibilityValue(
-                                    Text(item.allocationPercent.isEmpty
-                                         ? "Empty"
-                                         : "\(item.allocationPercent) percent")
-                                )
-                                .accessibilityHint("Edit the allocation percentage")
-                                // Adds a clear button to make it easy to clear the allocation of for percentages, improving the user experience
-                                HStack {
-                                    Spacer()
-                                    if !item.allocationPercent.isEmpty {
-                                        Button {
-                                            item.allocationPercent = ""
-                                        } label: {
-                                            Image(systemName: "xmark.circle.fill")
-                                                .foregroundColor(.gray.opacity(0.6))
-                                        }
-                                        .padding(.trailing, 8)
-                                        .accessibilityLabel("Clear allocation")
-                                        .accessibilityHint("Clears the allocation percentage for \(item.name)")
-                                        .accessibilityAddTraits(.isButton)
-                                    }
+                            Spacer()
+                            if !item.allocationPercent.isEmpty {
+                                Button {
+                                    item.allocationPercent = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.gray.opacity(0.6))
                                 }
+                                .padding(.trailing, 8)
+                                .accessibilityLabel("Clear allocation")
+                                .accessibilityHint("Clears the allocation percentage for \(item.name)")
+                                .accessibilityAddTraits(.isButton)
                             }
-                            .frame(width: 80, height: 35)
                         }
                     }
-                    // Logically groups these views of text and textfields for accessibility
-                        .accessibilityElement(children: .contain)
-                        .accessibilityLabel(Text("\(item.name), Allocation"))
-                    
-                )
-                .offset(x: cardOffsetX)
-                .simultaneousGesture(
-                    DragGesture(minimumDistance: 8)
-                        .onChanged { value in
-                            let dx = value.translation.width
-                            let dy = value.translation.height
-                            
-                            // Decide intent ONCE at the start of the gesture
-                            if !gestureLocked {
-                                // Strong horizontal bias to avoid stealing vertical scrolls
-                                if abs(dx) > abs(dy) * 1.5 {
-                                    isHorizontalGesture = true
-                                    gestureLocked = true
-                                } else if abs(dy) > abs(dx) {
-                                    // Vertical gesture → allow ScrollView to handle it
-                                    gestureLocked = true
-                                    return
-                                } else {
-                                    // Not enough information yet
-                                    return
-                                }
-                            }
-                            
-                            // If horizontal gesture is locked, move the card
-                            guard isHorizontalGesture else { return }
-                            
-                            // If the user drags to the left, offset the hidden trash icon to the right into view
-                            if dx < 0 {
-                                /*
-                                 Move the trash icon to the right at a speed of 1.7x the gesture translation.
-                                 Set a maximum travel distance of maxDragWidth * 1.7
-                                 */
-                                trashOffsetX = min(dx * -1.7, maxDragWidth * 1.7)
-
-                                if deleteCommitted && !wasDeleteCommitted {
-                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                    deleteBounceToken += 1
-                                }
-                                wasDeleteCommitted = deleteCommitted
-                            }
-                            // Else if the user drags to the right, move the pencil icon to the right
-                            else {
-                                pencilOffsetX = max(dx * -1.7, -maxDragWidth * 1.7)
-
-                                if editCommitted && !wasEditCommitted {
-                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                    pencilBounceToken += 1
-                                }
-                                wasEditCommitted = editCommitted
-                            }
-                            
-                            let clamped = min(
-                                max(dx, -maxDragWidth),
-                                maxDragWidth
-                            )
-                            cardOffsetX = clamped
-                        }
-                        .onEnded { value in
-                            defer {
-                                // Reset gesture state for next interaction
-                                isHorizontalGesture = false
-                                gestureLocked = false
-                                wasEditCommitted = false
-                                wasDeleteCommitted = false
-                            }
-                            
-                            guard isHorizontalGesture else { return }
-                            
-                            let dx = value.translation.width
-                            
-                            if dx <= -maxDragWidth {
-                                cardOffsetX = -maxDragWidth
-                                
-                                withAnimation(.easeInOut) {
-                                    onDelete()
-                                }
-                            } else if dx >= maxDragWidth {
-                                withAnimation(.easeInOut) {
-                                    cardOffsetX = 0
-                                    trashOffsetX = 0
-                                    pencilOffsetX = 0
-
-                                }
-                                onEdit()
-                            } else {
-                                // Snap back to center
-                                withAnimation(.easeOut) {
-                                    cardOffsetX = 0
-                                    trashOffsetX = 0
-                                    pencilOffsetX = 0
-                                }
-                            }
-                        }
-                )
+                    .frame(width: 80, height: 35)
+                }
+            }
+            // Logically groups these views of text and textfields for accessibility
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(Text("\(item.name), Allocation"))
+            
         }
     }
 }
+
+
 
 #Preview {
     let inputs = FireInputs()
