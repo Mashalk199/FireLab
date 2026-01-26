@@ -183,6 +183,19 @@ struct LoanItem: Identifiable {
     var outstandingBalance: String
     var interestRate: String // (percentage, float whole number out of 100)
     var minimumPayment: String
+    
+    init(
+        name: String = "",
+        outstandingBalance: String = "",
+        interestRate: String = "",
+        minimumPayment: String = ""
+    ) {
+        self.name = name
+        self.outstandingBalance = outstandingBalance
+        self.interestRate = interestRate
+        self.minimumPayment = minimumPayment
+    }
+    
 }
 
 struct PortfolioItem: Identifiable, Hashable, Codable {

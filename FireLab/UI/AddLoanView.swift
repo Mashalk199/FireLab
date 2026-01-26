@@ -12,8 +12,17 @@ struct AddLoanView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var inputs: FireInputs
 
-    @StateObject private var vm = AddLoanViewModel()
+    @StateObject private var vm: AddLoanViewModel
     @AccessibilityFocusState private var errorFocused: Bool
+    @Binding private var currItem: LoanItem
+
+    
+    init(currItem: Binding<LoanItem>) {
+        // TODO: Fix the current poor handling of currItem being passed to the viewmodel
+        _currItem = currItem
+        let currentItem = currItem.wrappedValue
+        _vm = StateObject(wrappedValue: AddLoanViewModel(currItem: currentItem))
+    }
 
     var body: some View {
         FireLogo()
@@ -98,7 +107,11 @@ struct AddLoanView: View {
 
 #Preview {
     NavigationStack {
-        AddLoanView()
+        AddLoanView(
+            currItem: .constant(
+                FireInputs.mockDefaultConfig().loanItems[0]
+            )
+        )
             .environmentObject(FireInputs())
     }
 }

@@ -16,9 +16,10 @@ final class LoanDetailsViewModel: ObservableObject {
     func attach(inputs: FireInputs) { self.inputs = inputs }
 
     // deletion centralised in the VM (called from the cell)
-    func delete(loanID: UUID) {
+    func removeItem(_ item: LoanItem) {
         guard let inputs else { return }
-        if let idx = inputs.loanItems.firstIndex(where: { $0.id == loanID }) {
+
+        if let idx = inputs.loanItems.firstIndex(where: { $0.id == item.id }) {
             inputs.loanItems.remove(at: idx)
         }
     }

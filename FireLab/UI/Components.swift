@@ -170,7 +170,7 @@ struct SmallNavButton<Destination: View>: View {
     var fgColor: Color
     var bgColor: Color
     var border: Color
-    var hint: String
+    var hint: String?
     var height: Int? = nil
 
     @ViewBuilder var destination: () -> Destination
@@ -186,13 +186,13 @@ struct SmallNavButton<Destination: View>: View {
                          fgColor: fgColor,
                          bgColor: bgColor,
                          border: border,
+                         hint: hint,
                          height: height,
                          )
         }
         .padding(.vertical, 15)
         .buttonStyle(.plain)
         .accessibilityLabel(text)
-        .accessibilityHint(hint)
     }
 }
 /** This is simply a view of the small button component, abstracted away into a separate view.
@@ -206,6 +206,7 @@ struct SmallButtonView: View {
     var fgColor: Color
     var bgColor: Color
     var border: Color
+    var hint: String?
     var height: Int?
 
     
@@ -231,6 +232,7 @@ struct SmallButtonView: View {
                 
             }
         }
+        .accessibilityHint(hint ?? "")
         .frame(width: CGFloat(width), height: CGFloat(height ?? 66))
         .background(
             RoundedRectangle(
@@ -294,6 +296,9 @@ struct ItemCard<Content: View> : View {
     @State private var wasEditCommitted = false
     @State private var deleteBounceToken: Int = 0
     @State private var wasDeleteCommitted = false
+    
+    @State private var iconOpacity: Double = 1
+
 
     private var editCommitted: Bool {
         pencilOffsetX <= -maxDragWidth * 1.7
@@ -331,10 +336,13 @@ struct ItemCard<Content: View> : View {
                 .offset(x: trashOffsetX)
                 .font(.system(size: 35))
                 .symbolEffect(.bounce, value: deleteBounceToken)
+                .opacity(iconOpacity)
             Image(systemName: "pencil.circle.fill")
                 .offset(x: pencilOffsetX)
                 .font(.system(size: 35))
                 .symbolEffect(.bounce, value: pencilBounceToken)
+                .opacity(iconOpacity)
+
             
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.lightGray))
@@ -342,6 +350,8 @@ struct ItemCard<Content: View> : View {
                 .overlay(alignment: .topTrailing) {
                     // Add .destructive annotation as per accessibility HIG
                     Button(role: .destructive) {
+                        // Ensures icons behind the button do not appear when the cross button is clicked
+                        iconOpacity = 0
                         // Adds animation for specifically when the card is removed
                         withAnimation(.easeInOut) {
                             onDelete()
@@ -452,6 +462,10 @@ struct ItemCard<Content: View> : View {
                         }
                 )
         }
+        .frame(
+            width: rectWidth + maxDragWidth * 2,
+            height: rectHeight
+        )
     }
 }
 

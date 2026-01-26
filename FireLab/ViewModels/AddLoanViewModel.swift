@@ -9,6 +9,9 @@ import Foundation
 
 @MainActor
 final class AddLoanViewModel: ObservableObject {
+
+    let currItem: LoanItem
+    
     // moved from View
     @Published var loanName: String = ""
     @Published var outstandingBalance: String = ""
@@ -17,6 +20,15 @@ final class AddLoanViewModel: ObservableObject {
     @Published var errorText: String?
 
     private var inputs: FireInputs?
+    
+    init(currItem: LoanItem) {
+        self.currItem = currItem
+        // If editing an existing item, prefill the fields
+        self.loanName = currItem.name
+        self.outstandingBalance = currItem.outstandingBalance
+        self.yearlyInterest = currItem.interestRate
+        self.minimumPayment = currItem.minimumPayment
+    }
 
     func attach(inputs: FireInputs) {
         if self.inputs == nil { self.inputs = inputs }
@@ -52,14 +64,25 @@ final class AddLoanViewModel: ObservableObject {
     func addIfValid() -> Bool {
         guard validate(), let inputs else { return false }
 
-        inputs.loanItems.append(
-            LoanItem(
-                name: loanName,
-                outstandingBalance: outstandingBalance,
-                interestRate: yearlyInterest,
-                minimumPayment: minimumPayment
+        if let idx = inputs.loanItems.firstIndex(where: { $0.id == currItem.id }) {
+
+            // Update existing item in place
+            inputs.loanItems[idx].name = loanName
+            inputs.loanItems[idx].outstandingBalance = outstandingBalance
+            inputs.loanItems[idx].interestRate = yearlyInterest
+            inputs.loanItems[idx].minimumPayment = minimumPayment
+
+        }
+        else {
+            inputs.loanItems.append(
+                LoanItem(
+                    name: loanName,
+                    outstandingBalance: outstandingBalance,
+                    interestRate: yearlyInterest,
+                    minimumPayment: minimumPayment
+                )
             )
-        )
+        }
         return true
     }
 }

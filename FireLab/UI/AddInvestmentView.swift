@@ -23,7 +23,6 @@ struct AddInvestmentView: View {
     @Binding private var currItem: InvestmentItem
 
 
-    // take SelectedETF and pass it to the VM
     init(currItem: Binding<InvestmentItem>) {
         // TODO: Fix the current poor handling of currItem being passed to the viewmodel
         _currItem = currItem
