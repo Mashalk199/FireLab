@@ -94,6 +94,7 @@ struct LoanDetailsView: View {
     }
 }
 
+/// Loan card for displaying the details of all user-entered loans
 struct LoanCard : View {
     @Binding var item: LoanItem
     var maxDragWidth: CGFloat

@@ -46,9 +46,6 @@ struct FireInputsSnapshot: Codable {
     var mortgageYearlyInterestText: String
     var mortgageMinimumPaymentText: String
     
-    var housingTypeRaw: String
-    var housingDetailsSetRaw: String
-    
     var investmentItems: [InvestmentItem]
     var portfolioItems: [PortfolioItem]
     var loanItems: [LoanItemDTO]
@@ -74,8 +71,6 @@ extension FireInputs {
             weeklyRentText: self.weeklyRentText,
             mortgageYearlyInterestText: self.mortgageYearlyInterestText,
             mortgageMinimumPaymentText: self.mortgageMinimumPaymentText,
-            housingTypeRaw: (self.housingType == .mortgage ? "mortgage" : "rent"),
-            housingDetailsSetRaw: (self.housingDetailsSet == .set ? "set" : "unset"),
             investmentItems: self.investmentItems,
             portfolioItems: self.portfolioItems,
             loanItems: loanDTOs
@@ -92,8 +87,6 @@ extension FireInputs {
         self.weeklyRentText = s.weeklyRentText
         self.mortgageYearlyInterestText = s.mortgageYearlyInterestText
         self.mortgageMinimumPaymentText = s.mortgageMinimumPaymentText
-        self.housingType = (s.housingTypeRaw == "mortgage" ? .mortgage : .rent)
-        self.housingDetailsSet = (s.housingDetailsSetRaw == "set" ? .set : .unset)
         self.investmentItems = s.investmentItems
         self.portfolioItems = s.portfolioItems
         self.loanItems = s.loanItems.map {

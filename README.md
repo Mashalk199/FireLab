@@ -21,6 +21,7 @@ FireLab is an app that uses your personal financial details to provide a retirem
 </p>
 
 ## Technologies Used
+- SwiftUI
 - CoreML
 - Firebase
 - SwiftData

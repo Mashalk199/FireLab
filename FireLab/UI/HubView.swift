@@ -47,15 +47,19 @@ struct HubView: View {
                 label: "Assumed inflation rate",
                 fieldVar: $inputs.inflationRateText,
                 placeholder: "%")
+            .padding(.bottom)
             
-            
-            MediumButton(text: "Add Loans",
-                         hint: "Opens other loans details page") {
-                LoanDetailsView()
+            MediumButton(text: "Income",
+                         hint: "Opens income details screen") {
+                IncomeDetailsView()
             }
             MediumButton(text: "Superannuation",
-                         hint: "Opens superannuation details page") {
+                         hint: "Opens superannuation details screen") {
                 SuperDetailsView()
+            }
+            MediumButton(text: "Add Loans",
+                         hint: "Opens other loans details screen") {
+                LoanDetailsView()
             }
             
             Spacer()

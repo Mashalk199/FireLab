@@ -1,11 +1,12 @@
 //
-//  Data.swift
+//  FireInputs.swift
 //  FireLab
 //
 //  Created by Mashal Ahmad Khan on 21/8/2025.
 //
 
 import Foundation
+
 /**
  This object stores all user inputs collected across all app screens to be used in the final calculation in an environment object.
  */
@@ -18,8 +19,8 @@ class FireInputs: ObservableObject {
     @Published var FIContributionText: String = ""
     /// Yearly inflation rate (float whole number out of 100)
     @Published var inflationRateText: String = ""
-    /// Yearly income
-    @Published var yearlyIncomeText: String = ""
+    /// Employment details (salary + employer super)
+    @Published var employment: Employment = Employment()
     /// Superannuation object containing all superannuation details
     @Published var superannuation: Superannuation = Superannuation()
     /// Outstanding mortgage balance
@@ -30,33 +31,30 @@ class FireInputs: ObservableObject {
     @Published var weeklyRentText: String = ""
     /// Mortgage minimum monthly payment
     @Published var mortgageMinimumPaymentText: String = ""
-    /// Sets the housing type of their housing details, whether it's a mortgage or rental
-    @Published var housingType: HousingType = .mortgage
-    /// Checks whether the housing details were set by the user or not
-    @Published var housingDetailsSet: HousingDetailsSet = .unset
     /// List of all investments the user has added. This is the investments they will plan on investing into in the future, containing allocations
     @Published var investmentItems: [InvestmentItem] = []
     /// List of all portfolio items the user has added. This is the investments they already invested in in the past
     @Published var portfolioItems: [PortfolioItem] = []
     /// List of all loan items the user has added.
     @Published var loanItems: [LoanItem] = []
-
 }
-enum InvestmentType: String, Codable { case etf, bond, superannuation }
-/// This object stores the details of a particular investment, whether it is an existing ETF selected from the database, or a user-created bond
-struct InvestmentItem: Identifiable, Codable, Equatable, Hashable {
-    // Provide a property-level default so Decodable synthesis is happy
-    let id: UUID = UUID()
 
+
+
+/** Investment type enum */
+enum InvestmentType: String, Codable { case etf, bond, superannuation }
+
+/** This object stores the details of a particular investment, whether it is an existing ETF selected from the database, or a user-created bond */
+struct InvestmentItem: Identifiable, Codable, Equatable, Hashable {
+    let id: UUID = UUID()
     var name: String
     var type: InvestmentType
     var allocationPercent: String
     var expectedReturn: String
     var currentValue: String
-    var etfSnapshot: ETFDoc?  // runtime-only (not encoded)
+    var etfSnapshot: ETFDoc?
     var autoCalc: Bool
 
-    // Convenience init (no id parameter needed)
     init(
         name: String = "",
         type: InvestmentType = .etf,
@@ -80,6 +78,37 @@ struct InvestmentItem: Identifiable, Codable, Equatable, Hashable {
     }
 }
 
+/** Employment struct for salary and employer super details */
+struct Employment {
+    /// Gross annual salary before tax
+    var yearlyIncome: String = ""
+    
+    /// Employer super contribution percentage (e.g., 11.5)
+    var employerSuperRate: String = ""
+    
+    /// Optional: other taxable income
+    var otherIncome: String = ""
+    
+    /// Optional: private hospital cover for MLS
+    var hasPrivateHealthCover: Bool = false
+}
+
+struct Superannuation {
+    /// Current super balance
+    var value: String = ""
+    
+    /// Expected annual return (percentage)
+    var expectedReturn: String = ""
+    
+    /// Voluntary concessional contributions (monthly)
+    var concessional: String = ""
+    
+    /// Voluntary non-concessional contributions (monthly)
+    var nonConcessional: String = ""
+    
+    /// Retirement spending as a percentage of current expenses
+    var retirementMultiplier: String = ""
+}
 
 extension FireInputs {
     /// Seeds inputs to a sensible default configuration for previews / debug.
@@ -98,10 +127,21 @@ extension FireInputs {
         // Economy
         i.inflationRateText = "2.5"
 
+        // Employment
+        i.employment.yearlyIncome = "80000"
+        i.employment.employerSuperRate = "11.5"
+        i.employment.otherIncome = "5000"
+        i.employment.hasPrivateHealthCover = true
+
+        // Superannuation
+        i.superannuation.value = "25000"
+        i.superannuation.expectedReturn = "6.0"
+        i.superannuation.concessional = "500"
+        i.superannuation.nonConcessional = "200"
+        i.superannuation.retirementMultiplier = "80"
+
         // Housing
-        i.housingType = .rent
         i.weeklyRentText = "0"
-        i.housingDetailsSet = .set
 
         // Real ETF snapshots (ADRA, FEMS, RTH)
         let adra = ETFDoc(
@@ -131,7 +171,7 @@ extension FireInputs {
             country: "United States"
         )
 
-        // Future investments (ETFs + Bonds) - allocations sum to 100%. Hook snapshots into investment items.
+        // Future investments (ETFs + Bonds)
         i.investmentItems = [
             InvestmentItem(
                 name: "ADRA — Invesco BLDRS Asia 50 ADR",
@@ -161,27 +201,28 @@ extension FireInputs {
 
         // Current brokerage + super
         i.portfolioItems = [
-            PortfolioItem(name: "Old ETF A", type: .etf,            value: "12000", expectedReturn: "4.5"),
-            PortfolioItem(name: "Old ETF B", type: .etf,            value: "8000",  expectedReturn: "3.5"),
-            PortfolioItem(name: "Old ETF C", type: .etf,            value: "5000",  expectedReturn: "5.5"),
-            // TODO: Mock the super data
-//            PortfolioItem(name: "My Super",  type: .superannuation, value: "25000", expectedReturn: i.superGrowthRateText)
+            PortfolioItem(name: "Old ETF A", type: .etf, value: "12000", expectedReturn: "4.5"),
+            PortfolioItem(name: "Old ETF B", type: .etf, value: "8000", expectedReturn: "3.5"),
+            PortfolioItem(name: "Old ETF C", type: .etf, value: "5000", expectedReturn: "5.5")
         ]
 
         // Debts
         i.loanItems = [
-            LoanItem(name: "Credit Card", outstandingBalance: "6000",  interestRate: "19.9", minimumPayment: "150"),
-            LoanItem(name: "HECS-HELP",   outstandingBalance: "12000", interestRate: "4.7",  minimumPayment: "0"),
-            LoanItem(name: "Car Loan",    outstandingBalance: "8500",  interestRate: "7.9",  minimumPayment: "300"),
+            LoanItem(name: "Credit Card", outstandingBalance: "6000", interestRate: "19.9", minimumPayment: "150"),
+            LoanItem(name: "HECS-HELP", outstandingBalance: "12000", interestRate: "4.7", minimumPayment: "0"),
+            LoanItem(name: "Car Loan", outstandingBalance: "8500", interestRate: "7.9", minimumPayment: "300")
         ]
+
         return i
     }
 }
+
+/** LoanItem struct */
 struct LoanItem: Identifiable {
     let id = UUID()
     var name: String
     var outstandingBalance: String
-    var interestRate: String // (percentage, float whole number out of 100)
+    var interestRate: String
     var minimumPayment: String
     
     init(
@@ -195,26 +236,17 @@ struct LoanItem: Identifiable {
         self.interestRate = interestRate
         self.minimumPayment = minimumPayment
     }
-    
 }
 
+/** PortfolioItem struct */
 struct PortfolioItem: Identifiable, Hashable, Codable {
     let id = UUID()
     var name: String
     var type: InvestmentType
     var value: String
-    var expectedReturn: String // (percentage, float whole number out of 100)
+    var expectedReturn: String
     
     private enum CodingKeys: String, CodingKey {
-           case name, type, value, expectedReturn
-       }
-}
-struct Superannuation {
-    var value: String = ""
-    var expectedReturn: String = ""
-    var salary: String = ""
-    var employerPercentage: String = ""
-    var concessional: String = ""
-    var nonConcessional: String = ""
-    var retirementMultiplier: String = ""
+        case name, type, value, expectedReturn
+    }
 }

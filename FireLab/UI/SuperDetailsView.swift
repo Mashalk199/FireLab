@@ -32,14 +32,6 @@ struct SuperDetailsView: View {
                        fieldVar: $vm.superReturn,
                        placeholder: "%"
             )
-            InputField(label: "Annual salary",
-                       fieldVar: $vm.salary,
-                       placeholder: "$"
-            )
-            InputField(label: "Employer super rate",
-                       fieldVar: $vm.superCont,
-                       placeholder: "%"
-            )
             InputField(label: "Monthly concessional contributions",
                        fieldVar: $vm.concessional,
                        placeholder: "$ Optional"
@@ -74,8 +66,6 @@ struct SuperDetailsView: View {
                         inputs.superannuation = Superannuation(
                             value: vm.superValue,
                             expectedReturn: vm.superReturn,
-                            salary: vm.salary,
-                            employerPercentage: vm.superCont,
                             concessional: vm.concessional,
                             nonConcessional: vm.nonConcessional,
                             retirementMultiplier: vm.retirementMultiplier

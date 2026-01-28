@@ -11,8 +11,6 @@ import SwiftUI
 final class SuperDetailsViewModel: ObservableObject {
     @Published var superValue: String = ""
     @Published var superReturn: String = ""
-    @Published var salary: String = ""
-    @Published var superCont: String = ""
     @Published var concessional: String = ""
     @Published var nonConcessional: String = ""
     @Published var retirementMultiplier: String = ""
@@ -20,7 +18,15 @@ final class SuperDetailsViewModel: ObservableObject {
     @Published var errorText: String?
     // gets attached from the View (so EnvironmentObject is available first)
     @Published private var inputs: FireInputs?
-    func attach(inputs: FireInputs) { if self.inputs == nil { self.inputs = inputs } }
+    func attach(inputs: FireInputs) {
+        guard self.inputs == nil else { return }
+
+        self.superValue = inputs.superannuation.value
+        self.superReturn = inputs.superannuation.expectedReturn
+        self.concessional = inputs.superannuation.concessional
+        self.nonConcessional = inputs.superannuation.nonConcessional
+        self.retirementMultiplier = inputs.superannuation.retirementMultiplier
+    }
 
     // Function to validate all user inputs moved from View
     func validate() -> Bool {
@@ -28,8 +34,6 @@ final class SuperDetailsViewModel: ObservableObject {
         
         guard let superVal = Double(superValue), superVal >= 0 else { errorText = "Enter super value >= 0"; return false }
         guard let superRetVal = Double(superReturn), superRetVal >= 0, superRetVal <= 100 else { errorText = "Enter 0 <= super expected return <= 100"; return false }
-        guard let salaryVal = Double(salary), salaryVal >= 0 else { errorText = "Enter salary >= 0"; return false }
-        guard let superContVal = Double(superCont), superContVal >= 0, superContVal <= 100 else { errorText = "Enter 0 <= employer super rate <= 100"; return false }
         if !concessional.isEmpty {
             guard let concessionalVal = Double(concessional), concessionalVal >= 0 else { errorText = "Enter concessional contribution >= 0"; return false }
         }
@@ -44,4 +48,3 @@ final class SuperDetailsViewModel: ObservableObject {
         return true
     }
 }
-

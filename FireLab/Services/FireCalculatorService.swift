@@ -122,21 +122,9 @@ struct FireCalculatorService {
         let monthlyFI     = monthlyTotal                                     // alias for clarity
 
         let annual_inflation: Double = getDouble(inputs.inflationRateText) / 100.0
-        let superAnnual: Double      = 9999999
+        let superAnnual: Double      = getDouble(inputs.superannuation.expectedReturn) / 100.0
         let superGrowthRate          = getMonthlyReturn(superAnnual, annual_inflation)
 
-        // explicit branch by user choice
-        switch inputs.housingType {
-        case .mortgage:
-            break
-        case .rent:
-            let weeklyRent = max(0.0, getDouble(inputs.weeklyRentText))
-            if weeklyRent > 0 {
-                let annualRent = weeklyRent * 52.0
-                // Add rent converted to a monthly value
-                monthlyExpenses += annualRent / MONTHS_IN_YEAR
-            }
-        }
 
         // brokerage bucket = ETFs + Bonds
         let brokerage = inputs.investmentItems.filter { $0.type == .etf || $0.type == .bond }
@@ -170,22 +158,6 @@ struct FireCalculatorService {
             let apr  = max(0.0, getDouble(li.interestRate) / 100.0)
             let minM = max(0.0, getDouble(li.minimumPayment))
             return (li.name, bal, apr, minM, monthlyDebtFactor(apr))
-        }
-
-        // We add a mortgage to the list of debts if the user has selected mortgage as their housing type
-        if inputs.housingType == .mortgage {
-            let mBal  = max(0.0, getDouble(inputs.outstandingMortgageText))
-            let mAPR  = max(0.0, getDouble(inputs.mortgageYearlyInterestText) / 100.0)
-            let mMinM = max(0.0, getDouble(inputs.mortgageMinimumPaymentText))
-            if mBal > 0 || mAPR > 0 || mMinM > 0 {
-                debts.append((
-                    name: "Mortgage",
-                    balance: mBal,
-                    annualRate: mAPR,
-                    minMonthly: mMinM,
-                    monthlyFactor: monthlyDebtFactor(mAPR)
-                ))
-            }
         }
 
         print("--- Phase A start (monthly) ---")
